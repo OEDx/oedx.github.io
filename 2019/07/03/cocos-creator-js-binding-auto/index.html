@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定 | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos Creator,Cocos,JSB">
+    <meta name="description" content="尽管Cocos官方提供了jsb.reflection.callStaticMethod方式支持从JS端直接调用Native端（Android，iOS/Mac）的接口，但是经过大量实践发现此接口在大量频繁调用情况下性能很低下，尤其是在Android端，比如调用Native端实现的打印log的接口，而且会容易引起一些native crash，例如local reference table overf">
+<meta name="keywords" content="Cocos Creator,Cocos,JSB">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定">
+<meta property="og:url" content="http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="尽管Cocos官方提供了jsb.reflection.callStaticMethod方式支持从JS端直接调用Native端（Android，iOS/Mac）的接口，但是经过大量实践发现此接口在大量频繁调用情况下性能很低下，尤其是在Android端，比如调用Native端实现的打印log的接口，而且会容易引起一些native crash，例如local reference table overf">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/11.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/22.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/33.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/44.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/55.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/66.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/77.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/114.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/88.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/99.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/100.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/110.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/111.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/112.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/113.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定">
+<meta name="twitter:description" content="尽管Cocos官方提供了jsb.reflection.callStaticMethod方式支持从JS端直接调用Native端（Android，iOS/Mac）的接口，但是经过大量实践发现此接口在大量频繁调用情况下性能很低下，尤其是在Android端，比如调用Native端实现的打印log的接口，而且会容易引起一些native crash，例如local reference table overf">
+<meta name="twitter:image" content="http://oedx.github.io/images/cocos-creator-js-binding-auto/11.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-07-03T21:00:00.000Z" itemprop="datePublished" class="page-time">
+  2019-07-03
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#背景"><span class="post-toc-number">1.</span> <span class="post-toc-text">背景</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#环境配置和自动绑定展示"><span class="post-toc-number">2.</span> <span class="post-toc-text">环境配置和自动绑定展示</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#环境配置"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">环境配置</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#自动绑定展示"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">自动绑定展示</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#编写c-层的实现"><span class="post-toc-number">3.</span> <span class="post-toc-text">编写c++层的实现</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#JSB配置脚本编写"><span class="post-toc-number">4.</span> <span class="post-toc-text">JSB配置脚本编写</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Cocos编译配置"><span class="post-toc-number">5.</span> <span class="post-toc-text">Cocos编译配置</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#自动绑定的限制条件"><span class="post-toc-number">6.</span> <span class="post-toc-text">自动绑定的限制条件</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#总结"><span class="post-toc-number">7.</span> <span class="post-toc-text">总结</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-cocos-creator-js-binding-auto" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-07-03 21:00:00" datetime="2019-07-03T21:00:00.000Z" itemprop="datePublished">2019-07-03</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p>张鑫(kevinxzhang)</p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <blockquote>
+<p>尽管Cocos官方提供了jsb.reflection.callStaticMethod方式支持从JS端直接调用Native端（Android，iOS/Mac）的接口，但是经过大量实践发现此接口在大量频繁调用情况下性能很低下，尤其是在Android端，比如调用Native端实现的打印log的接口，而且会容易引起一些native crash，例如local reference table overflow等问题。纵观Cocos原生代码的实现，基本所有的接口方法的实现都是基于JSB的方式来实现，所以此文主要讲解下JSB的自动绑定逻辑，帮助大家能快速实现callStaticMethod到JSB的改造过程。</p>
+</blockquote>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>对于用过Cocos Creater（为了方便后文直接简称CC）的人来说，<strong>jsb.reflection.callStaticMethod</strong> 这个方法肯定不陌生，其提供了我们从JS端调用Native端的能力，例如我们要调用Native实现的log打印和持久化的接口，就可以很方便的在JavaScrpit中按照如下的操作调用即可：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (cc.sys.isNative &amp;&amp; cc.sys.os == cc.sys.OS_IOS) &#123;</span><br><span class="line">    msg = <span class="keyword">this</span>.buffer_string + <span class="string">'\n[cclog]['</span> + clock + <span class="string">']['</span> + tag + <span class="string">']'</span> + msg;</span><br><span class="line">    jsb.reflection.callStaticMethod(<span class="string">"ABCLogServuce"</span>, <span class="string">"log:module:level:"</span>, msg, <span class="string">'cclog'</span>, level);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (cc.sys.isNative &amp;&amp; cc.sys.os == cc.sys.OS_ANDROID) &#123;</span><br><span class="line">    msg = <span class="keyword">this</span>.buffer_string + <span class="string">'\n[cclog]['</span> + clock + <span class="string">']['</span> + tag + <span class="string">']'</span> + msg;</span><br><span class="line">    jsb.reflection.callStaticMethod(<span class="string">"com/example/test/CommonUtils"</span>, <span class="string">"log"</span>, <span class="string">"(ILjava/lang/String;Ljava/lang/String;)V"</span>, level, <span class="string">'cclog'</span>, msg);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>尽管使用很简单，一行代码就能实现跨平台调用，稍微看下其实现就可以知道，在C++层Android端是通过jni的方式实现的，IOS端是通过运行时的方式动态调用，但是为了兼顾通用性和支持所有的方法，Android端没有对jni相关对象做缓存机制，就会导致短时间大量调用时出现很严重的性能问题，之前我们遇到的比较多的情况就是在下载器中打印log，某些应用场景短时间内触发大量的下载操作，就会出现local reference table overflow的crash，甚至在低端机上导致界面卡顿无法加载出来的问题。<br>修复此问题就需要针对log调用进行JSB的改造，同时还要加上jni的相关缓存机制，优化性能。<br>jSB绑定说白了就是 C++ 和脚本层之间进行对象的转换，并转发脚本层函数调用到 C++ 层的过程<br>JSB绑定通常有手动绑定和自动绑定两种方式，<br>手动绑定方式可以参考同事写的这篇<a href="https://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/">文章</a>，手动绑定方式优点是灵活，可定制型强，缺点就是全部代码要自己书写，尤其是在js类型跟c++类型转换上，稍有不慎容易导致内存泄漏，某些指针或者对象没有释放。<br>自动绑定方式则会帮你省了很多麻烦，直接通过一个脚本一键生成相关的代码，后续如果有新增或者改动，也只需要重新执行一次脚本即可。所以自动绑定对于不需要进行强定制，需要快速完成JSB的情况来说就再适合不过了。下面就一步步说明下如何实现自动绑定JSB：</p>
+<h2 id="环境配置和自动绑定展示"><a href="#环境配置和自动绑定展示" class="headerlink" title="环境配置和自动绑定展示"></a>环境配置和自动绑定展示</h2><h3 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h3><p>自动绑定，说简单点，其实就只要执行一个python脚本即可自动生成对应的.cpp,.h ,.js文件。所以首先要保证电脑有python运行环境，这里以Mac上安装为例来讲解<br>1.安装python，强烈建议先安装<a href="https://brew.sh/" target="_blank" rel="noopener">HomeBrew</a>,然后直接命令行运行<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"</span><br><span class="line">brew install python</span><br></pre></td></tr></table></figure></p>
+<p>2.通过pip安装python的一些依赖库<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo easy_install pip</span><br><span class="line">sudo pip install PyYAML</span><br><span class="line">sudo pip install Cheetah</span><br></pre></td></tr></table></figure></p>
+<p>3.安装NDK，涉及到c++肯定这个是必不可少的，建议安装<a href="https://dl.google.com/android/repository/android-ndk-r14b-darwin-x86_64.zip" target="_blank" rel="noopener">14b</a>版本，然后在<code>~/.bash_profile</code> 中设置 <code>PYTHON_ROOT</code> 和 <code>NDK_ROOT</code> 这两个环境变量，因为在后面执行的python文件里面就会直接用到这两个环境变量<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export NDK_ROOT="/Users/mycount/Library/Android/sdk/ndk-r14b"</span><br><span class="line">export PYTHON_BIN="/usr/bin/python"</span><br></pre></td></tr></table></figure></p>
+<p>Window下直接参考上面需要安装的模块直接安装就好了，最后也要记得配置环境变量。</p>
+<h3 id="自动绑定展示"><a href="#自动绑定展示" class="headerlink" title="自动绑定展示"></a>自动绑定展示</h3><p>这里演示的是cocos引擎下面也即⁨<strong>build/⁨jsb-default⁩/frameworks⁩/cocos2d-x/cocos⁩/scripting⁩/js-bindings/⁨auto</strong>⁩目录下的文件（如下图所示）是怎么自动生成的，<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/11.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>其实从这些文件名的开头也能看出，这些文件命名都是有某些特定规律的，那么这些文件是怎么生成的呢？<br>首先打开终端，先cd到build/jsb-default/frameworks/cocos2d-x/tools/tojs目录下，<br>然后直接运行<em>./genbindings.py</em><br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/22.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>大概运行一分钟左右后，会出现如下的提示，说明已经顺利生成完了。<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/33.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>当然一般大家第一次运行后很可能会失败，出现如下面类似的报错<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/44.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/55.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>一般都是因为配置的NDK版本太高导致，最开始我是用NDK16b就出现了问题，换成NDK14b后就OK了。</p>
+<p>经过上面的步骤后，build/⁨jsb-default⁩/frameworks⁩/cocos2d-x/cocos⁩/scripting⁩/js-bindings/⁨auto⁩下的文件就全部自动生成出来了，是不是非常方便。<br>下面再以js层通过jsb调用Native层的log方法打印日志为例，详细的告知下如何实现通过自动绑定工具，依据自己写的c++代码，生成对应的自动绑定文件。</p>
+<h2 id="编写c-层的实现"><a href="#编写c-层的实现" class="headerlink" title="编写c++层的实现"></a>编写c++层的实现</h2><p>C++作为连接js层和Native层的桥梁，既然要实现jsb调用，那第一步肯定是要先把C++层的头文件和实现准备好，这里我们在build⁩/jsb-defaul/frameworks⁩/cocos2d-x⁩/cocos⁩创建一个test文件夹用于存放相关文件，<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/66.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>这里先准备ABCJSBBridge.h，里面主要是申明了一个abcLog的函数，此函数就是供JS层调用打log的，另外由于打log方法肯定在js层很多地方都会使用，所以这里采用了一个单例模式，提供了getInstance()来获取当前类的实例<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"base/CCConsole.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> PROJ_ANDROID_STUDIO_ABCJSBBRIDGE_H</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PROJ_ANDROID_STUDIO_ABCJSBBRIDGE_H</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DLLOG(format, ...)      cocos2d::log(format, ##__VA_ARGS__)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">//PROJ_ANDROID_STUDIO_ABCJSBBRIDGE_H</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> abc</span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">IABCJSBBridgeImpl</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">JSBBridge</span></span></span><br><span class="line"><span class="class">    &#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">abcLog</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> level, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; tag, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; msg)</span></span>;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">        * Returns a shared instance of the director.</span></span><br><span class="line"><span class="comment">        * @js _getInstance</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">        <span class="function"><span class="keyword">static</span> JSBBridge* <span class="title">getInstance</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/** @private */</span></span><br><span class="line">        JSBBridge();</span><br><span class="line">        <span class="comment">/** @private */</span></span><br><span class="line">        ~JSBBridge();</span><br><span class="line">        <span class="function"><span class="keyword">bool</span> <span class="title">init</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;IABCJSBBridgeImpl&gt; _impl;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面是对应的实现ABCJSBBridge.cpp:<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"ABCJSBBridge.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// include platform specific implement class</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_MAC || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"ABCJSBBridge-apple.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> JSBBridgeImpl  JSBBridgeApple</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">elif</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"ABCJSBBridge-android.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> JSBBridgeImpl  JSBBridgeAndroid</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> abc</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// singleton stuff</span></span><br><span class="line">    <span class="keyword">static</span> JSBBridge *s_SharedJSBBridge = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line">    JSBBridge::JSBBridge()</span><br><span class="line">    &#123;</span><br><span class="line">        DLLOG(<span class="string">"Construct JSBBridge %p"</span>, <span class="keyword">this</span>);</span><br><span class="line">        init();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    JSBBridge::~JSBBridge()</span><br><span class="line">    &#123;</span><br><span class="line">        DLLOG(<span class="string">"Destruct JSBBridge %p"</span>, <span class="keyword">this</span>);</span><br><span class="line">        s_SharedJSBBridge = <span class="literal">nullptr</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">JSBBridge* <span class="title">JSBBridge::getInstance</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!s_SharedJSBBridge)</span><br><span class="line">        &#123;</span><br><span class="line">            DLLOG(<span class="string">"getInstance JSBBridge "</span>);</span><br><span class="line">            s_SharedJSBBridge = <span class="keyword">new</span> (<span class="built_in">std</span>::nothrow) JSBBridge();</span><br><span class="line">            CCASSERT(s_SharedJSBBridge, <span class="string">"FATAL: Not enough memory for create JSBBridge"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> s_SharedJSBBridge;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">JSBBridge::init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        DLLOG(<span class="string">"init JSBBridge "</span>);</span><br><span class="line">        _impl.reset(<span class="keyword">new</span> JSBBridgeImpl());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">JSBBridge::abcLog</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> level, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; tag, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; msg)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        _impl-&gt;abcLog(level, tag, msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>CCIABCJSBBridgeIml.h：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"base/CCConsole.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> PROJ_ANDROID_STUDIO_CCIABCJSBBRIDGEIML_H</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PROJ_ANDROID_STUDIO_CCIABCJSBBRIDGEIML_H</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">//PROJ_ANDROID_STUDIO_CCIABCJSBBRIDGEIML_H</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DLLOG(format, ...)      cocos2d::log(format, ##__VA_ARGS__)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> abc</span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">IABCJSBBridgeImpl</span></span></span><br><span class="line"><span class="class">    &#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="keyword">virtual</span> ~IABCJSBBridgeImpl()&#123;&#125;</span><br><span class="line">        <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">abcLog</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> level, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; tag, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; msg)</span> </span>= <span class="number">0</span>;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里为了方便区分Android平台和iOS平台的实现，仿照Cocos源码其他地方的写法，分别提供了ABCJSBBridge-android.h和ABCJSBBridge-apple.h以及对应的实现类,两个平台分别继承IABCJSBBridgeImpl然后实现内部的虚函数即可。</p>
+<h2 id="JSB配置脚本编写"><a href="#JSB配置脚本编写" class="headerlink" title="JSB配置脚本编写"></a>JSB配置脚本编写</h2><p>为了保持跟官方的一致，我们在build/jsb-default/frameworks/cocos2d-x/tools/tojs 目录下创建genbindings_test.py，里面的内容基本跟genbindings.py 差不多，主要区别有如下几点：<br>1.去掉了cmd_args 那段，里面主要是记录了cocos自带的一些需要生成jsb的文件，因为考虑到项目可能会对Cocos源码进行修改，如果这时候把这部分保留的话，当运行脚本后会把我们自带的修改就给覆盖掉了<br>2.取消了定制的output_dir也就是最终生成的js，c++等绑定文件的路径，而是保持跟Cocos一样，也即在cocos/scripting/js-bindings/auto，主要为了方便下一步配置mk文件<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/77.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure></p>
+<p>这里先说下genbindings_test.py里面配置的一些参数：<br>1.NDK_ROOT 环境变量：指示 NDK 的根目录<br>2.PYTHON_BIN 环境变量：指示 Python 命令的路径<br>3.cocosdir：Cocos 引擎根目录，在用户工程下一般是 build/jsb-default/frameworks/cocos2d-x/<br>4.jsbdir：JSB 目录，在用户工程下一般是 build/jsb-default/frameworks/cocos2d-x/cocos/scripting/js-bindings<br>5.cxx_generator_root：自动绑定工具路径，在用户工程下一般是 build/jsb-default/frameworks/cocos2d-x/tools/bindings-generator<br>6.output_dir：生成的绑定文件存储路径<br>7.cmd_args和custom_cmd_args：所有配置文件，及其对应的模块名称和输出文件名称</p>
+<p>这里自动绑定工具使用 libclang 的 python API 对 C++ 头文件进行语法分析。绑定的过程大致如下：</p>
+<ul>
+<li>创建绑定代码输出文件。</li>
+<li>递归扫描需要绑定的头文件。</li>
+<li>通过 libclang 的 clang.cindex python 模块找到所有需要绑定的类，公共 API 等。</li>
+<li>按照模版生成类绑定函数，API 绑定函数，绑定注册函数并输出到文件中。</li>
+</ul>
+<p>关于custom_cmd_args参数的配置这里说明下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">'cocos2dx_test.ini': ('cocos2dx_test', 'jsb_cocos2dx_test_auto'),</span><br><span class="line">配置文件：（模块名称，输出的绑定文件名）</span><br></pre></td></tr></table></figure>
+<p>这里的配置文件cocos2dx_test.ini又是用来干嘛的呢？其实就跟build/jsb-default/frameworks/cocos2d-x/tools/tojs/下的其他.ini文件类似，主要让自动绑定工具知道哪些 API 要被绑定和以什么样的方式绑定，写法上直接参考Cocos已有的ini文件，这里展示下cocos2dx_test.ini的内容：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">[cocos2dx_test]</span><br><span class="line"><span class="meta">#</span><span class="bash"> the prefix to be added to the generated <span class="built_in">functions</span>. You might or might not use this <span class="keyword">in</span> your own</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> templates</span></span><br><span class="line">prefix = cocos2dx_test</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> create a target namespace (<span class="keyword">in</span> javascript, this would create some code like the equiv. to `ns = ns || &#123;&#125;`)</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> all classes will be embedded <span class="keyword">in</span> that namespace</span></span><br><span class="line">target_namespace = abc</span><br><span class="line"></span><br><span class="line">android_headers = -I%(androidndkdir)s/platforms/android-14/arch-arm/usr/include -I%(androidndkdir)s/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include -I%(androidndkdir)s/sources/cxx-stl/gnu-libstdc++/4.8/include -I%(androidndkdir)s/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include -I%(androidndkdir)s/sources/cxx-stl/gnu-libstdc++/4.9/include</span><br><span class="line">android_flags = -D_SIZE_T_DEFINED_ </span><br><span class="line"></span><br><span class="line">clang_headers = -I%(clangllvmdir)s/%(clang_include)s </span><br><span class="line">clang_flags = -nostdinc -x c++ -std=c++11 -U __SSE__</span><br><span class="line"></span><br><span class="line">cocos_headers = -I%(cocosdir)s -I%(cocosdir)s/cocos -I%(cocosdir)s/cocos/platform/android -I%(cocosdir)s/external</span><br><span class="line"></span><br><span class="line">cocos_flags = -DANDROID</span><br><span class="line"></span><br><span class="line">cxxgenerator_headers = </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> extra arguments <span class="keyword">for</span> clang</span></span><br><span class="line">extra_arguments = %(android_headers)s %(clang_headers)s %(cxxgenerator_headers)s %(cocos_headers)s %(android_flags)s %(clang_flags)s %(cocos_flags)s %(extra_flags)s </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> what headers to parse</span></span><br><span class="line">headers = %(cocosdir)s/cocos/test/ABCJSBBridge.h</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> cpp_headers = network/js_network_manual.h</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> what classes to produce code <span class="keyword">for</span>. You can use regular expressions here. When testing the regular</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> expression, it will be enclosed <span class="keyword">in</span> <span class="string">"^$"</span>, like this: <span class="string">"^Menu*$"</span>.</span></span><br><span class="line">classes = JSBBridge</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> what should we skip? <span class="keyword">in</span> the format ClassName::[<span class="keyword">function</span> <span class="keyword">function</span>]</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> ClassName is a regular expression, but will be used like this: <span class="string">"^ClassName$"</span> <span class="built_in">functions</span> are also</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> regular expressions, they will not be surrounded by <span class="string">"^$"</span>. If you want to skip a whole class, just</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> add a single <span class="string">"*"</span> as <span class="built_in">functions</span>. See bellow <span class="keyword">for</span> several examples. A special class name is <span class="string">"*"</span>, <span class="built_in">which</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> will apply to all class names. This is a convenience wildcard to be able to skip similar named</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="built_in">functions</span> from all classes.</span></span><br><span class="line">skip = JSBBridge::[init]</span><br><span class="line"></span><br><span class="line">rename_functions = </span><br><span class="line"></span><br><span class="line">rename_classes =</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">for</span> all class names, should we remove something when registering <span class="keyword">in</span> the target VM?</span></span><br><span class="line">remove_prefix = </span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> classes <span class="keyword">for</span> <span class="built_in">which</span> there will be no <span class="string">"parent"</span> lookup</span></span><br><span class="line">classes_have_no_parents = JSBBridge</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> base classes <span class="built_in">which</span> will be skipped when their sub-classes found them.</span></span><br><span class="line">base_classes_to_skip = Clonable</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> classes that create no constructor</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Set is special and we will use a hand-written constructor</span></span><br><span class="line">abstract_classes = JSBBridge</span><br></pre></td></tr></table></figure>
+<p>其实从里面的注释也讲的非常详细，这里说几个主要的属性及含义：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/114.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<p>以上的配置完成后，就可以按照如下命令运行自动生成绑定文件：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/88.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>然后就会看到在build/jsb-default/frameworks/cocos2d-x/cocos/scripting/js-bindings下面多出了三个绑定文件<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/99.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>打开生成的jsb_cocos2dx_test_autp.cpp：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"scripting/js-bindings/auto/jsb_cocos2dx_test_auto.hpp"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"scripting/js-bindings/manual/jsb_conversions.hpp"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"scripting/js-bindings/manual/jsb_global.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"test/ABCJSBBridge.h"</span></span></span><br><span class="line"></span><br><span class="line">se::Object* __jsb_abc_JSBBridge_proto = <span class="literal">nullptr</span>;</span><br><span class="line">se::Class* __jsb_abc_JSBBridge_class = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">js_cocos2dx_test_JSBBridge_abcLog</span><span class="params">(se::State&amp; s)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    abc::JSBBridge* cobj = (abc::JSBBridge*)s.nativeThisObject();</span><br><span class="line">    SE_PRECONDITION2(cobj, <span class="literal">false</span>, <span class="string">"js_cocos2dx_test_JSBBridge_abcLog : Invalid Native Object"</span>);</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">auto</span>&amp; args = s.args();</span><br><span class="line">    <span class="keyword">size_t</span> argc = args.size();</span><br><span class="line">    CC_UNUSED <span class="keyword">bool</span> ok = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (argc == <span class="number">3</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> arg0 = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">string</span> arg1;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">string</span> arg2;</span><br><span class="line">        ok &amp;= seval_to_int32(args[<span class="number">0</span>], (<span class="keyword">int32_t</span>*)&amp;arg0);</span><br><span class="line">        ok &amp;= seval_to_std_string(args[<span class="number">1</span>], &amp;arg1);</span><br><span class="line">        ok &amp;= seval_to_std_string(args[<span class="number">2</span>], &amp;arg2);</span><br><span class="line">        SE_PRECONDITION2(ok, <span class="literal">false</span>, <span class="string">"js_cocos2dx_test_JSBBridge_abcLog : Error processing arguments"</span>);</span><br><span class="line">        cobj-&gt;abcLog(arg0, arg1, arg2);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    SE_REPORT_ERROR(<span class="string">"wrong number of arguments: %d, was expecting %d"</span>, (<span class="keyword">int</span>)argc, <span class="number">3</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line">SE_BIND_FUNC(js_cocos2dx_test_JSBBridge_abcLog)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">js_cocos2dx_test_JSBBridge_getInstance</span><span class="params">(se::State&amp; s)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">auto</span>&amp; args = s.args();</span><br><span class="line">    <span class="keyword">size_t</span> argc = args.size();</span><br><span class="line">    CC_UNUSED <span class="keyword">bool</span> ok = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (argc == <span class="number">0</span>) &#123;</span><br><span class="line">        abc::JSBBridge* result = abc::JSBBridge::getInstance();</span><br><span class="line">        ok &amp;= native_ptr_to_seval&lt;abc::JSBBridge&gt;((abc::JSBBridge*)result, &amp;s.rval());</span><br><span class="line">        SE_PRECONDITION2(ok, <span class="literal">false</span>, <span class="string">"js_cocos2dx_test_JSBBridge_getInstance : Error processing arguments"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    SE_REPORT_ERROR(<span class="string">"wrong number of arguments: %d, was expecting %d"</span>, (<span class="keyword">int</span>)argc, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line">SE_BIND_FUNC(js_cocos2dx_test_JSBBridge_getInstance)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">js_register_cocos2dx_test_JSBBridge</span><span class="params">(se::Object* obj)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> cls = se::Class::create(<span class="string">"JSBBridge"</span>, obj, <span class="literal">nullptr</span>, <span class="literal">nullptr</span>);</span><br><span class="line"></span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"abcLog"</span>, _SE(js_cocos2dx_test_JSBBridge_abcLog));</span><br><span class="line">    cls-&gt;defineStaticFunction(<span class="string">"getInstance"</span>, _SE(js_cocos2dx_test_JSBBridge_getInstance));</span><br><span class="line">    cls-&gt;install();</span><br><span class="line">    JSBClassType::registerClass&lt;abc::JSBBridge&gt;(cls);</span><br><span class="line"></span><br><span class="line">    __jsb_abc_JSBBridge_proto = cls-&gt;getProto();</span><br><span class="line">    __jsb_abc_JSBBridge_class = cls;</span><br><span class="line"></span><br><span class="line">    se::ScriptEngine::getInstance()-&gt;clearException();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">register_all_cocos2dx_test</span><span class="params">(se::Object* obj)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// Get the ns</span></span><br><span class="line">    se::Value nsVal;</span><br><span class="line">    <span class="keyword">if</span> (!obj-&gt;getProperty(<span class="string">"abc"</span>, &amp;nsVal))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function">se::HandleObject <span class="title">jsobj</span><span class="params">(se::Object::createPlainObject())</span></span>;</span><br><span class="line">        nsVal.setObject(jsobj);</span><br><span class="line">        obj-&gt;setProperty(<span class="string">"abc"</span>, nsVal);</span><br><span class="line">    &#125;</span><br><span class="line">    se::Object* ns = nsVal.toObject();</span><br><span class="line"></span><br><span class="line">    js_register_cocos2dx_test_JSBBridge(ns);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>看到这里是不是感觉很熟悉，跟Cocos 已有的那些cpp完全一样，甚至包括里面的注册函数和类的定义都给全部自动生成了。</p>
+<h2 id="Cocos编译配置"><a href="#Cocos编译配置" class="headerlink" title="Cocos编译配置"></a>Cocos编译配置</h2><p>尽管经过上面一步后我们已经生成出来了绑定文件，但是js层还是没法直接使用，因为还需要把生成的绑定文件，配置到mk文件中，从而跟其他c++文件一起编译才行，这部分主要就是将最后的mk编译配置。<br>1.打开build/jsb-default/frameworks/cocos2d-x/cocos/Android.mk文件，在其中加上最开始实现的cpp文件<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/100.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>2.打开build/jsb-default/frameworks/cocos2d-x/cocos/scripting/js-bindings/proj.android/Android.mk，在其中加上上一步生成的cpp文件<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/110.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>3.打开build/jsb-default/frameworks/runtime-src/Classes/jsb_module_register.cpp，添加引擎启动时调用绑定文件的注册函数，从而将其添加到js环境中<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/111.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>4.打开build/jsb-default/frameworks/cocos2d-x/cocos/scripting/js-bindings/script/jsb_boot.js，在其中增加js对象的初始化<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/112.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure><br>上面说到的jsb_module_register.cpp 和jsb_boot.js 其实都是在Cocos引擎初始化的时候就会去调用的，关于启动流程感兴趣的可以去看看这篇<a href="https://gowa.club/Cocos-Creator/Cocos%20Creator%E7%94%9F%E6%88%90%E9%A1%B9%E7%9B%AE%E7%9A%84%E5%90%AF%E5%8A%A8%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.html" target="_blank" rel="noopener">文章</a></p>
+<p>经过上面这些配置后，最终就可以在js层直接像下面这样来进行调用，而不是用callStaticMethod方式<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-auto/113.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure></p>
+<h2 id="自动绑定的限制条件"><a href="#自动绑定的限制条件" class="headerlink" title="自动绑定的限制条件"></a>自动绑定的限制条件</h2><p>自动绑定依赖于Bindings Generator 工具，Cocos官方还在github上单独把这部分拎出来了，<a href="https://github.com/cocos2d/bindings-generator/" target="_blank" rel="noopener">https://github.com/cocos2d/bindings-generator/</a><br>Bindings Generator 工具它可以将 C++ 类的公共方法和公共属性绑定到脚本层。自动绑定工具尽管非常强大，但是还是会有一些限制：</p>
+<ol>
+<li>只能够针对类生成绑定，不可以绑定结构体，独立函数等。</li>
+<li>不能够生成 Delegate 类型的 API，因为脚本中的对象是无法继承 C++ 中的 Delegate 类并重写其中的 Delegate 函数的。</li>
+<li>子类中重写了父类的 API 的同时，又重载了这个 API。</li>
+<li>部分 API 实现内容并没有完全体现在其 API 定义中。</li>
+<li>在运行时由 C++ 主动调用的 API。</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总的来说，自动绑定JSB只需要要求开发者编写相关的实现c++实现类，一个配置文件，然后执行一条命令就能完整整个的绑定过程，如果没有什么特殊定制，相对于手动绑定来说，效率上还是提高了不少，实际工作做可以依据具体情况先用自动绑定功能，然后再去手动修改生成的绑定文件，达到事倍功半的效果。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos-Creator/">Cocos Creator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JSB/">JSB</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/&title=《【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/&title=《【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定》 — OEDx&url=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/08/07/mini-program-auto-test/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">小程序自动化测试实践</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/06/20/CocosCreator-TextureCompression-Plugin/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Cocos Creator 纹理压缩插件化</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/&title=《【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/&title=《【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定》 — OEDx&url=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/07/03/cocos-creator-js-binding-auto/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACrUlEQVR42u3ay24jMQwEwPz/TyfXxQa2u0kpmEPNyUjmoZKBId3S11d8fP9zJGe+uurVHX7/Pb/2wIGHh4e3GPrv4/0572HtFLT3T67Cw8PDu8dLBvHq1vnbeFZO8unDw8PDeyYvwZ8tBpvWHA8PD+8JvPcNd1s82ufi4eHhPYeXhBFJ8JpHsWen70DWgoeHhxfz8lWk53y+sr6Hh4eHt15V38S194KG4ll4eHh4F3j5CzdpjtswIgkmZlu+8PDw8G7zTnWk+RDz++T/zScLDw8Pb88b6uP2t53ptpB8OB8PDw/vGm+zKWp2t7Zxbxft8PDw8P6Gl0Sr7dL+ZoPC4cKAh4eHd4g32w7VFox8cHn0UJcHPDw8vEO8BLZpfJMwYvbcaELx8PDwLvBmL+h20LOy0W4siL5DPDw8vDWvDVjzxa322nyaVlkLHh4e3lHe/tZJfLD53F6Fh4eHd5a3GXobFrRbstqwo+7N8fDw8Ea828tdUQoSPHc1uXh4eHgXeHnzmge4s5i4DSlW3yEeHh7emte20bMFs1ns2250wMPDw7vHazeGbtjJFLTN94e/4+Hh4V3gzV7x+SDy49QGBTw8PLzbvNmDZ2tMxZLVYqHu5Z4IPDw8vEO8WXlog91ZscnLRjQGPDw8vKO8WVhwqiHOS0U+0cNdCXh4eHglbx9A5FOWtOCzIlH8bsDDw8M7xMub7H2csVnuKsILPDw8vKO8zTLVfgPBLLrNIw88PDy8G7z2Vft+iPlmgjYsnk0QHh4e3j1eWwyOvY7LScwnAg8PD+9veEkU2w4iP/9UDIGHh4f3TF6yWJU34nmD3hYqPDw8vOfwZoDNQtr7cz5UATw8PLxrvNnWq+RheVQxCzU+PAUPDw/vAm/zi75dJGsHlG8XuBJY4OHh4f1//ACc3X2CWn1mGwAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

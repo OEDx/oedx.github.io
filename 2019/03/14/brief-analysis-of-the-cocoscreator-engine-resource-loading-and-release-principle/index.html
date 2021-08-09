@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>CocosCreator 引擎资源加载与释放原理简析 | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos">
+    <meta name="description" content="图片取自 Zoommy              本文主要内容如下：  资源加载与释放部分代码所在 调试、修改引擎源码的方法 资源加载与释放原理简析  如要了解 CocosCreator 引擎资源加载与释放的原理，">
+<meta name="keywords" content="Cocos">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CocosCreator 引擎资源加载与释放原理简析">
+<meta property="og:url" content="http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="图片取自 Zoommy              本文主要内容如下：  资源加载与释放部分代码所在 调试、修改引擎源码的方法 资源加载与释放原理简析  如要了解 CocosCreator 引擎资源加载与释放的原理，">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/1552558246.59SmartPic.png">
+<meta property="og:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/1552547553.94SmartPic.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CocosCreator 引擎资源加载与释放原理简析">
+<meta name="twitter:description" content="图片取自 Zoommy              本文主要内容如下：  资源加载与释放部分代码所在 调试、修改引擎源码的方法 资源加载与释放原理简析  如要了解 CocosCreator 引擎资源加载与释放的原理，">
+<meta name="twitter:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/1552558246.59SmartPic.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">CocosCreator 引擎资源加载与释放原理简析</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">CocosCreator 引擎资源加载与释放原理简析</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-03-14T17:01:35.000Z" itemprop="datePublished" class="page-time">
+  2019-03-14
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#前言"><span class="post-toc-number">1.</span> <span class="post-toc-text">前言</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#调试、修改引擎代码"><span class="post-toc-number">2.</span> <span class="post-toc-text">调试、修改引擎代码</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#CocosCreator-引擎资源加载与释放简析"><span class="post-toc-number">3.</span> <span class="post-toc-text">CocosCreator 引擎资源加载与释放简析</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#资源加载"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">资源加载</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#CCLoader"><span class="post-toc-number">3.1.1.</span> <span class="post-toc-text">CCLoader</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#loading-items"><span class="post-toc-number">3.1.2.</span> <span class="post-toc-text">loading-items</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#pipeline"><span class="post-toc-number">3.1.3.</span> <span class="post-toc-text">pipeline</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#loader"><span class="post-toc-number">3.1.4.</span> <span class="post-toc-text">loader</span></a></li></ol></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#资源释放"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">资源释放</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#参考文章"><span class="post-toc-number">4.</span> <span class="post-toc-text">参考文章</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">CocosCreator 引擎资源加载与释放原理简析</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-03-14 17:01:35" datetime="2019-03-14T17:01:35.000Z" itemprop="datePublished">2019-03-14</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p><a href="http://khanzhang.cn">张韩(khanzhang)</a></p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/1552558246.59SmartPic.png" alt="图片取自 Zoommy" title>
+                </div>
+                <div class="image-caption">图片取自 Zoommy</div>
+            </figure>
+<p>本文主要内容如下：</p>
+<ol>
+<li>资源加载与释放部分代码所在</li>
+<li>调试、修改引擎源码的方法</li>
+<li>资源加载与释放原理简析</li>
+</ol>
+<p>如要了解 CocosCreator 引擎资源加载与释放的原理，调试、修改引擎代码有助于对其原理进行理解。因此文中会先介绍 CocosCreator 引擎各部分及其文件夹，然后介绍调试、修改引擎源码的方法，最后对其原理进行分析。</p>
+<p>如果你对阅读、调试修改源码不感兴趣，可直接跳转到第三部分阅读。如果你对此主题不感兴趣，可直接关闭网页。</p>
+<blockquote>
+<p>本文基于 CocosCreator 1.10.2，另外 2.0.8 版本关于资源加载释放部分改动不大，也可适用</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Cocos Creator 的引擎部分包括 <code>JavaScript</code>、<code>Cocos2d-x-lite</code> 和 <code>adapter</code> 三个部分，各部分对应源码在（Mac 版）：</p>
+<ol>
+<li>JavaScript：CocosCreator.app/Resource/engine（JS 引擎）</li>
+<li>Cocos2d-x-lite：CocosCreator.app/Resource/cocos2d-x（Cococ2d-x 引擎）</li>
+<li>adapter：CocosCreator.app/Resource/builtin/</li>
+</ol>
+<p>其中 <code>engine</code> 文件夹下代码部分包含了引擎的 JS 层逻辑，而引擎的资源加载与释放部分代码就处于此文件夹中，路径为 <code>cocos2d/core/load-pipeline/</code>，主要涉及 <code>pipeline.js</code>、<code>loading-items.js</code>、<code>CCLoader.js</code>、<code>loader.js</code>、<code>uuid-loader.js</code> 等文件。</p>
+<p>另外，需要了解的是 CocosCreator 引擎中资源是有依赖关系的，比如 SpriteAtlas 资源的加载会依赖于多个 SpriteFrame 资源的加载，而 SpriteFrame 资源依赖于 Texture2D 资源。</p>
+<p>下边对调试、修改引擎代码做简单介绍。</p>
+<h2 id="调试、修改引擎代码"><a href="#调试、修改引擎代码" class="headerlink" title="调试、修改引擎代码"></a>调试、修改引擎代码</h2><ol>
+<li><p>找到 <code>CocosCreator</code> 的 <code>JavaScript</code> 引擎所在目录 <code>CocosCreator.app/Resource/engine</code>，将该文件夹复制到其他地方，我们将对复制后的代码进行调试和修改。然后在 CocosCreator 的项目设置中修改 <code>JavaScript</code> 引擎路径为复制后的路径。如果要调试 <code>Cocos2d-x</code> 部分，修改对应文件夹即可。如下图：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/1552547553.94SmartPic.png" alt="定义 JavaScript 引擎路径" title>
+                </div>
+                <div class="image-caption">定义 JavaScript 引擎路径</div>
+            </figure>
+</li>
+<li><p>运行以下命令安装编译依赖</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 在命令行中进入引擎路径</span><br><span class="line">cd [engine_path]/engine</span><br><span class="line"><span class="meta">#</span> 安装 gulp 构建工具</span><br><span class="line">npm install -g gulp</span><br><span class="line"><span class="meta">#</span> 安装依赖的模块</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>现在可以打开 <code>engine</code> 文件夹，对 JS 引擎部分进行修改。修改后，在该文件夹下运行 <code>gulp build</code> 命令即可编译修改的部分，然后刷新 CocosCreator 预览的网页即可</p>
+</li>
+<li><p>至于调试其源码，可以直接在 <code>Chrome</code> 开发者工具中 <code>Cmd + o</code> （Mac 快捷键）呼出搜索框，输入并打开你需要调试的文件，然后即可打断点进行调试</p>
+</li>
+</ol>
+<h2 id="CocosCreator-引擎资源加载与释放简析"><a href="#CocosCreator-引擎资源加载与释放简析" class="headerlink" title="CocosCreator 引擎资源加载与释放简析"></a>CocosCreator 引擎资源加载与释放简析</h2><p>引擎资源加载与释放源码路径为 <code>engine/cocos2d/core/load-pipeline/</code>，主要关注 <code>pipeline.js</code>、<code>loading-items.js</code>、<code>CCLoader.js</code>、<code>loader.js</code>、<code>uuid-loader.js</code> 这几个文件。</p>
+<p>其中资源加载涉及 CCLoader、pipeline、loading-items、loader、uuid-loader 等多个类，而资源释放则主要是 CCLoader 中的 release 方法。</p>
+<h3 id="资源加载"><a href="#资源加载" class="headerlink" title="资源加载"></a>资源加载</h3><p>概括来讲，CCLoader 是供上层直接使用加载、释放资源的类，整合、封装了 pipeline、loading-items、loader 等类；pipeline 包含多个 pipe，这里的 pipe 是指实现了加载资源的单位（如 loader），pipeline 对资源的处理最终是调用 pipe.handle 实现的，pipeline 自身实现的是资源缓存和让资源依次流过管道，即每个资源依次经过每个 pipe 的处理；loading-items 配合 pipeline，实现了加载状态维护、依赖资源入队等内容；asset-loader、downloader、loader 则实现了资源加载具体功能，不同的加载器负责不同资源的加载。</p>
+<p>简化来看，一次资源的加载流程底层的调用函数如下：</p>
+<ol>
+<li>cc.loader.loadRes()</li>
+<li>CCLoader.load()</li>
+<li>loading-items.append</li>
+<li>pipeline.flowIn</li>
+<li>pipeline.flow</li>
+<li>pipe.handle（pipe 对应于 asset-loader、downloader、loader）</li>
+<li>加载完成，进行回调</li>
+</ol>
+<p>加载流程中其实还有一种情况需要注意：loader 其实会根据资源类型将加载任务分发给不同的类，如 uuid 类型会交给 uuid-loader。uuid-loader 加载时会加载该资源的依赖资源，其过程为：</p>
+<ol>
+<li>uuid-loader.loadUuid</li>
+<li>uuid-loader.loadDepends</li>
+<li>pipeline.flowInDeps</li>
+<li>loading-items.append</li>
+<li>后续流程和正常流程一致</li>
+</ol>
+<p>以下会根据加载流程分析一下是如何加载资源的。</p>
+<h4 id="CCLoader"><a href="#CCLoader" class="headerlink" title="CCLoader"></a>CCLoader</h4><p>CCLoader 继承自 pipeline，是用户可以直接调用来加载、释放资源的类，它对 pipeline、loading-items、loader 进行了整合封装，并提供了 load、loadRes、loadResDir、release、releaseRes 等方法供用户使用。资源加载相关的便是 load、loadRes 等方法，而所有方法最终是调用 load 方法来进行资源加载的。load 方法如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">proto.load = <span class="function"><span class="keyword">function</span>(<span class="params">resources, progressCallback, completeCallback</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 省略部分代码</span></span><br><span class="line"></span><br><span class="line">    _sharedResources.length = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; resources.length; ++i) &#123;</span><br><span class="line">        <span class="keyword">var</span> resource = resources[i];</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 省略部分代码</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> res = getResWithUrl(resource);</span><br><span class="line">        <span class="keyword">if</span> (!res.url &amp;&amp; !res.uuid)</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">var</span> item = <span class="keyword">this</span>._cache[res.url];</span><br><span class="line">        _sharedResources.push(item || res);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> queue = LoadingItems.create(<span class="keyword">this</span>, progressCallback, <span class="function"><span class="keyword">function</span> (<span class="params">errors, items</span>) </span>&#123;</span><br><span class="line">        callInNextTick(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">            <span class="comment">// 省略部分代码</span></span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">    LoadingItems.initQueueDeps(queue);</span><br><span class="line">    queue.append(_sharedResources);</span><br><span class="line">    _sharedResources.length = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+<p>可以看到 load 方法中，所做的就是创建一个 LoadingItem，然后对其进行初始化，之后调用其 append 方法。这里 LoadingItem 简单来看就是对<strong>待加载资源</strong>的一层封装。下边介绍 loading-items。</p>
+<h4 id="loading-items"><a href="#loading-items" class="headerlink" title="loading-items"></a>loading-items</h4><p>loading-items 主要是完善了每个资源对象的属性，包括资源内容、url 地址等，同时维护每个资源的加载状态、依赖关系等。以下是 append 方法代码。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">proto.append = <span class="function"><span class="keyword">function</span> (<span class="params">urlList, owner</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 省略代码</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>._appending = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">var</span> accepted = [], i, url, item;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; urlList.length; ++i) &#123;</span><br><span class="line">        <span class="comment">// 省略代码，主要是对每个资源的依赖关系、循环依赖、是否完成等进行处理</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Queue new items</span></span><br><span class="line">        <span class="keyword">if</span> (isIdValid(url)) &#123;</span><br><span class="line">            item = createItem(url, <span class="keyword">this</span>._id);</span><br><span class="line">            <span class="keyword">var</span> key = item.id;</span><br><span class="line">            <span class="comment">// No duplicated url</span></span><br><span class="line">            <span class="keyword">if</span> (!<span class="keyword">this</span>.map[key]) &#123;</span><br><span class="line">                <span class="keyword">this</span>.map[key] = item;</span><br><span class="line">                <span class="keyword">this</span>.totalCount++;</span><br><span class="line">                <span class="comment">// Register item deps for circle reference check</span></span><br><span class="line">                owner &amp;&amp; owner.deps.push(item);</span><br><span class="line">                LoadingItems.registerQueueDep(owner || <span class="keyword">this</span>._id, key);</span><br><span class="line">                accepted.push(item);</span><br><span class="line">                <span class="comment">// console.log('+++++ Appended ' + item.id);</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">this</span>._appending = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Manually complete</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.completedCount === <span class="keyword">this</span>.totalCount) &#123;</span><br><span class="line">        <span class="keyword">this</span>.allComplete();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>._pipeline.flowIn(accepted);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> accepted;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>从代码可以看出，append 所做的是：先对资源列表 urlList 里每一个元素做字段完善（create）、依赖处理（registerQueueDep），然后调用 pipeline.flowIn 将所有未加载完成的资源放入 pipeline 之中。下边介绍 pipeline。</p>
+<h4 id="pipeline"><a href="#pipeline" class="headerlink" title="pipeline"></a>pipeline</h4><p>pipeline 包含多个 pipe，pipe 存储在 _pipes 数组中，而且数组中的 nextPipe 赋值给了 lastPipe.next，以此将 pipe 链接成单向链表结构。这里的 pipe 是指实现了加载资源的单位（如 loader），pipeline 对资源的处理最终是调用 pipe.handle 实现的，pipeline 自身实现的是资源缓存和让资源依次流过管道，即每个资源依次经过每个 pipe 的处理。在 CCLoader 初始化 pipeline 时，为它添加了 AssetLoader、Downloader、Loader 三个 pipe，每个资源都会依次经过这三个 pipe 的处理。pipeline 中的 _cache 数组是对每个资源的缓存。</p>
+<p>以下是其 flowIn 方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">proto.flowIn = <span class="function"><span class="keyword">function</span> (<span class="params">items</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> i, pipe = <span class="keyword">this</span>._pipes[<span class="number">0</span>], item;</span><br><span class="line">    <span class="keyword">if</span> (pipe) &#123;</span><br><span class="line">        <span class="comment">// Cache all items first, in case synchronous loading flow same item repeatly</span></span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; items.length; i++) &#123;</span><br><span class="line">            item = items[i];</span><br><span class="line">            <span class="keyword">this</span>._cache[item.id] = item;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; items.length; i++) &#123;</span><br><span class="line">            item = items[i];</span><br><span class="line">            flow(pipe, item);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; items.length; i++) &#123;</span><br><span class="line">            <span class="keyword">this</span>.flowOut(items[i]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>flowIn 方法所做其实就是：先将每个资源 item 缓存到 _cache 中，然后对每个 item 调用 flow 方法。这里要注意的是 flow 的 pipe 参数为 _pipes[0]，即先将资源交给 pipeline 的第一个 pipe。以下是 flow 方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">flow</span> (<span class="params">pipe, item</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> pipeId = pipe.id;</span><br><span class="line">    <span class="keyword">var</span> itemState = item.states[pipeId];</span><br><span class="line">    <span class="keyword">var</span> next = pipe.next;</span><br><span class="line">    <span class="keyword">var</span> pipeline = pipe.pipeline;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (item.error || itemState === ItemState.WORKING || itemState === ItemState.ERROR) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (itemState === ItemState.COMPLETE) &#123;</span><br><span class="line">        <span class="keyword">if</span> (next) &#123;</span><br><span class="line">            flow(next, item);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            pipeline.flowOut(item);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        item.states[pipeId] = ItemState.WORKING;</span><br><span class="line">        <span class="comment">// Pass async callback in case it's a async call</span></span><br><span class="line">        <span class="keyword">var</span> result = pipe.handle(item, <span class="function"><span class="keyword">function</span> (<span class="params">err, result</span>) </span>&#123;</span><br><span class="line">            <span class="comment">// 省略代码</span></span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="comment">// If result exists (not undefined, null is ok), then we go with sync call flow</span></span><br><span class="line">        <span class="keyword">if</span> (result <span class="keyword">instanceof</span> <span class="built_in">Error</span>) &#123;</span><br><span class="line">            item.error = result;</span><br><span class="line">            item.states[pipeId] = ItemState.ERROR;</span><br><span class="line">            pipeline.flowOut(item);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (result !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">            <span class="comment">// Result can be null, then it means no result for this pipe</span></span><br><span class="line">            <span class="keyword">if</span> (result !== <span class="literal">null</span>) &#123;</span><br><span class="line">                item.content = result;</span><br><span class="line">            &#125;</span><br><span class="line">            item.states[pipeId] = ItemState.COMPLETE;</span><br><span class="line">            <span class="keyword">if</span> (next) &#123;</span><br><span class="line">                flow(next, item);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                pipeline.flowOut(item);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>flow 方法中对资源的处理分为三部分：</p>
+<ul>
+<li>如果资源状态为 ERROR，则直接返回</li>
+<li>如果资源状态为 COMPLETE 已完成，如果后续还有 pipe 就将其交给下一个 pipe 处理</li>
+<li>如果资源状态为空，说明此资源从未进行加载，则调用 pipe.handle 方法对其进行加载。加载完成后，先将加载结果交给 item，即<code>item.content = result</code>，然后会对其加载状态 states 进行修改，最后如果后续还有 pipe 就将其交给后续 pipe 处理。</li>
+</ul>
+<p>接下来再来看一下 pipe.handle 方法。从以下代码可以看出， CCLoader 初始化时，提供了三个 pipe：asset-loader、downloader、loader。实际上 pipe.handle 调用的其实是 assetLoader、downloader、loader 的 handle 方法，下边以 loader 为例进行介绍。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">CCLoader</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> assetLoader = <span class="keyword">new</span> AssetLoader();</span><br><span class="line">    <span class="keyword">var</span> downloader = <span class="keyword">new</span> Downloader();</span><br><span class="line">    <span class="keyword">var</span> loader = <span class="keyword">new</span> Loader();</span><br><span class="line"></span><br><span class="line">    Pipeline.call(<span class="keyword">this</span>, [</span><br><span class="line">        assetLoader,</span><br><span class="line">        downloader,</span><br><span class="line">        loader</span><br><span class="line">    ]);</span><br><span class="line">    <span class="comment">// 省略代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="loader"><a href="#loader" class="headerlink" title="loader"></a>loader</h4><p>loader 是 CCLoader 中添加到 pipeline 的 pipe 之一，其作用就是加载资源，pipeline 会直接调用其 handle 方法来加载资源。类似的类有 asset-loader、downloader。而 loader 相对特殊是它其中又会根据资源类型不同，调用不同的类去实现加载功能。比如 uuid 类型会调用 uuid-loader 来加载。这里提到的 uuid-loader 在加载资源的时候，会去判断资源是否有依赖资源，如果有会将依赖资源添加到 pipeline 中，进而对依赖资源进行加载。</p>
+<p>loader 的部分代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> defaultMap = &#123;</span><br><span class="line">    <span class="comment">// Images</span></span><br><span class="line">    <span class="string">'png'</span> : loadImage,</span><br><span class="line">    <span class="string">'jpg'</span> : loadImage,</span><br><span class="line">    <span class="string">'bmp'</span> : loadImage,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略代码</span></span><br><span class="line"></span><br><span class="line">    <span class="string">'uuid'</span> : loadUuid,</span><br><span class="line">    <span class="string">'prefab'</span> : loadUuid,</span><br><span class="line">    <span class="string">'fire'</span> : loadUuid,</span><br><span class="line">    <span class="string">'scene'</span> : loadUuid,</span><br><span class="line"></span><br><span class="line">    <span class="string">'default'</span> : loadNothing</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 省略代码</span></span><br><span class="line"></span><br><span class="line">Loader.prototype.handle = <span class="function"><span class="keyword">function</span> (<span class="params">item, callback</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> loadFunc = <span class="keyword">this</span>.extMap[item.type] || <span class="keyword">this</span>.extMap[<span class="string">'default'</span>];</span><br><span class="line">    <span class="keyword">return</span> loadFunc.call(<span class="keyword">this</span>, item, callback);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>可以看出 loader 会根据资源类型不同，进而调用对应的类去实现加载功能。如 uuid 类型资源，调用的是 uuid-loader 的 loadUuid 方法。而至于 loadUuid 方法中，则做了 deserialize 资源、解析处理依赖资源等。</p>
+<h3 id="资源释放"><a href="#资源释放" class="headerlink" title="资源释放"></a>资源释放</h3><p>CCLoader 对于资源释放提供了 release、releaseRes、releaseAsset、releaseResDir、releaseAll 方法，但实际上所有方法最终是调用 release 方法来实现资源释放的，在 release 调用之前所做的就是获取资源对应的 uuid，然后调用 release 方法。以下是 release 方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">proto.release = <span class="function"><span class="keyword">function</span> (<span class="params">asset</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">Array</span>.isArray(asset)) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; asset.length; i++) &#123;</span><br><span class="line">            <span class="keyword">var</span> key = asset[i];</span><br><span class="line">            <span class="keyword">this</span>.release(key);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (asset) &#123;</span><br><span class="line">        <span class="keyword">var</span> id = <span class="keyword">this</span>._getReferenceKey(asset);</span><br><span class="line">        <span class="keyword">var</span> item = <span class="keyword">this</span>.getItem(id);</span><br><span class="line">        <span class="keyword">if</span> (item) &#123;</span><br><span class="line">            <span class="keyword">var</span> removed = <span class="keyword">this</span>.removeItem(id);</span><br><span class="line">            asset = item.content;</span><br><span class="line">            <span class="keyword">if</span> (cc.Class.isInstanceOf(asset, cc.Asset)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (asset.nativeUrl) &#123;</span><br><span class="line">                    <span class="keyword">this</span>.release(asset.nativeUrl);  <span class="comment">// uncache loading item of native asset</span></span><br><span class="line">                &#125;</span><br><span class="line">                asset.destroy();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (CC_DEBUG &amp;&amp; removed) &#123;</span><br><span class="line">                <span class="keyword">this</span>._releasedAssetChecker_DEBUG.setReleased(item, id);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>从代码中可以看到，release 分为两部分：</p>
+<ol>
+<li>如果资源是数组，则对数组中的每个元素调用 release</li>
+<li>第二部分是释放资源的关键，所做的工作可以简化如下：<ol>
+<li>获取资源在 pipeline._cache 中的缓存 item，并在 _cache 中移除该 item</li>
+<li>拿到资源的实际内容，即 item.content，这也是 loader 加载出来的资源结果。如果 content 是 Asset 类型，则调用其 destroy 方法进行释放，同时释放其依赖的 nativeUrl 资源</li>
+<li>如果是 debug 模式，则会在 released-asset-checker 中标记该资源为已释放</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>注：</p>
+<ol>
+<li>这里的 released-asset-checker 是一个辅助类，其中一个作用就是检测已释放资源是否仍被其他资源引用</li>
+<li>release 方法其实仍存在缺陷，缺陷之一是无法释放 SpriteAtlas 所依赖的 SpriteFrame 资源，在释放后 SpriteFrame 资源仍存在与 pipeline._cache 中。这导致释放后再次加载同一个 SpriteAtlas 资源的加载不完整问题，该问题的表现是第二次加载 SpriteAtlas 后播放帧动画黑块现象。原因是：加载到 SpriteAtlas 依赖的 SpriteFrame 资源部分时，根据 pipeline.flow 方法代码会发现由于此时 <code>SpriteFrame.states = { &quot;AssetLoader&quot;: 2, &quot;Downloader&quot;: 2, &quot;loader&quot;: 2}</code>，这里 2 代表加载状态 COMPLETE，就是说该资源在所有 pipe 的状态均是已加载完成，资源直接通过了三个管道，最后执行 flowOut 方法，没有继续加载 SpriteFrame 所依赖的 Texture2D 资源，导致显示黑块。</li>
+</ol>
+</blockquote>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><ul>
+<li><a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/engine-customization.html" target="_blank" rel="noopener">引擎定制工作流程</a></li>
+<li><a href="https://docs.cocos.com/creator/1.10/api/zh/" target="_blank" rel="noopener">CocosCreator API 文档</a></li>
+<li>本文图片使用 Alfred Workflow：SmartPic 一键上传获取链接，<a href="http://www.packal.org/workflow/smartpic" target="_blank" rel="noopener">点击查看 SmartPic</a></li>
+</ul>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/&title=《CocosCreator 引擎资源加载与释放原理简析》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/&title=《CocosCreator 引擎资源加载与释放原理简析》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《CocosCreator 引擎资源加载与释放原理简析》 — OEDx&url=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/05/15/cocos-creator-support-etc1-alpha/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Cocos Creator 支持ETC1 + Alpha 纹理压缩</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/01/14/precise-positioning-cocos-online-error/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">精确定位 Cocos 线上报错</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/&title=《CocosCreator 引擎资源加载与释放原理简析》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/&title=《CocosCreator 引擎资源加载与释放原理简析》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《CocosCreator 引擎资源加载与释放原理简析》 — OEDx&url=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ4AAAEOCAAAAABd2qZ5AAAD1klEQVR42u3dS27bQBAFQN3/0s42hiL6db+hogTFlUCR5kxx0eoP4McjPr5+O3bnnz+/uuv58/WqkicePnDgwIEDR7zV5+P6YdPz18+9vjJZSb7aV68EBw4cOHCc4kjC2C64JtfvwmofdHHgwIEDx2dyTDfWJGNTbhw4cODA8a9w5CFth3V95XSrOHDgwIHj/RxJcXCHtSsvJmtLjhtrpThw4MCBY59hLTf/OZ9vme/AgQMHDhzDqbBmZOHs6ENyfhpc/3AXDhw4cOCoOfKAlAMlJcI+6uUbzp+CAwcOHDhOcZxKkPLBgmS5u5fUvAAcOHDgwNFzNAu9vnIKt2tc9Wv7dgYHDhw4cNzAMbg5OHN2pGD6AsZX4sCBAweOmiNZer69aXKVg+YNpwMFRBw4cODAcYgjh2gC6q5xNR1lyIuMOHDgwIHjbo6kgZQ3hPKNNeMU+VYjMhw4cODAUXBMm0ZNy2caVpsC35QPBw4cOHCc5ZgOru2GGHbc02G4qkSIAwcOHDhqjmaAIA+QuwbV9FX1lDhw4MCBo+c4NUbQJ3J5OjdtRw0SSBw4cODAUXP0owl5SrYbVsgDf1PQfOSiOHDgwIEj5mjGC/KG0KmnDELmofEIHDhw4MCx42iKevmi+7Jg8vQD7x8HDhw4cKw4mgGFr/g4leD1Qxg//BTAgQMHDhxHOaZtoWnM2o0s3DFI8XKdOHDgwIGj4Giqhvn1fWsnaUHtQL/9HRw4cODAcYjj+gH5UqZA02LiNIHMw3DUMcOBAwcOHOnuxv8ycxfwmgGIvLR3fW9U+sSBAwcOHAVHUjLbBbBdgW/Kd/heHDhw4MBx5t5HHpaSlKmBbsYjduH8h3QRBw4cOHAMOaajDLtvk/fwzqf8kMviwIEDB46aYxqumoXuCnx5O6r5yzhw4MCB4xTHrmw3DZP5YMTZsYlBCwoHDhw4cNzA0Zfh+lJjH9R3LSgcOHDgwPEejpwmaTIloXFaTMwD9nh8AQcOHDhwrDh2JbykcbVLzHr6XTDGgQMHDhynOO4OkMn5R3BMxxSS1/N4/+8FHDhw4PivOe4IoruULF/btIA4ThRx4MCBA0fB8TU8phvoA3CUeg1baNXSceDAgQPHoWPK1BcWz6Z806InDhw4cOBoOKZDDEmRLg+T09QrKvA1gRYHDhw4cBzi2AWqvF9zX3EwB4pabjhw4MCB4wM48nQu+XZaFpyiRwMNOHDgwIHjL3Gcags1NGcTVBw4cODAcYojHz7Io1Ky4TxM7oL9+C4cOHDgwFFznBoO2IW6aXDdjT7sGmk4cODAgWPI8QuHpCpcfx9S9QAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

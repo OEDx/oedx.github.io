@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇） | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos Creator,Cocos,JSB,JS引擎">
+    <meta name="description" content="背景一直以来，ABCmouse 项目中的整体 JS/Native 通信调用结构都是基于 callStaticMethod &amp;lt;-&amp;gt; evalString 的方式。通过 callStaticMethod 方法我们可以通过反射机制直接在 JavaScript 中调用 Java / Objective-C 的静态方法。而通过 evalString 方式，则可以执行 JS 代码，这样便可以进行双">
+<meta name="keywords" content="Cocos Creator,Cocos,JSB,JS引擎">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）">
+<meta property="og:url" content="http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="背景一直以来，ABCmouse 项目中的整体 JS/Native 通信调用结构都是基于 callStaticMethod &amp;lt;-&amp;gt; evalString 的方式。通过 callStaticMethod 方法我们可以通过反射机制直接在 JavaScript 中调用 Java / Objective-C 的静态方法。而通过 evalString 方式，则可以执行 JS 代码，这样便可以进行双">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-manual/infrastructure.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-manual/JSB2.0-Architecture.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-js-binding-manual/jsb_process.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）">
+<meta name="twitter:description" content="背景一直以来，ABCmouse 项目中的整体 JS/Native 通信调用结构都是基于 callStaticMethod &amp;lt;-&amp;gt; evalString 的方式。通过 callStaticMethod 方法我们可以通过反射机制直接在 JavaScript 中调用 Java / Objective-C 的静态方法。而通过 evalString 方式，则可以执行 JS 代码，这样便可以进行双">
+<meta name="twitter:image" content="http://oedx.github.io/images/cocos-creator-js-binding-manual/infrastructure.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-05-29T17:52:46.000Z" itemprop="datePublished" class="page-time">
+  2019-05-29
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#背景"><span class="post-toc-number">1.</span> <span class="post-toc-text">背景</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#前置"><span class="post-toc-number">2.</span> <span class="post-toc-text">前置</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#抽象层"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">抽象层</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#SE-类型"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">SE 类型</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#宏"><span class="post-toc-number">2.3.</span> <span class="post-toc-text">宏</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#类型转换辅助函数"><span class="post-toc-number">2.4.</span> <span class="post-toc-text">类型转换辅助函数</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#实践"><span class="post-toc-number">3.</span> <span class="post-toc-text">实践</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#总结"><span class="post-toc-number">4.</span> <span class="post-toc-text">总结</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-cocos-creator-js-binding-manual" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-05-29 17:52:46" datetime="2019-05-29T17:52:46.000Z" itemprop="datePublished">2019-05-29</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p>晋中望(xepherjin)</p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>一直以来，ABCmouse 项目中的整体 JS/Native 通信调用结构都是基于 <code>callStaticMethod &lt;-&gt; evalString</code> 的方式。通过 <code>callStaticMethod</code> 方法我们可以通过反射机制直接在 JavaScript 中调用 Java / Objective-C 的静态方法。而通过 <code>evalString</code> 方式，则可以执行 JS 代码，这样便可以进行双端通信。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-manual/infrastructure.png" alt="新版 ABCmouse 的应用架构：基于 callStaticMethod 与 evalString 进行通信" title>
+                </div>
+                <div class="image-caption">新版 ABCmouse 的应用架构：基于 callStaticMethod 与 evalString 进行通信</div>
+            </figure>
+<p>虽然基于这个方式上层封装接口后，新增业务逻辑会比较方便。但是过度依赖 <code>evalString</code> ，往往也会带来一些隐患。举个 Android 侧的例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Cocos2dxJavascriptJavaBridge.evalString(&quot;window.sample.testEval(&apos;&quot; + param + &quot;&apos;,JSON.stringify(&quot; + jsonObj + &quot;))&quot;);</span><br></pre></td></tr></table></figure></p>
+<p>对于常见的参数结构，这样运行是没有问题的，然而基于实际场景的种种情况，我们会发现针对<strong>引号</strong>的控制格外重要。如代码所示，为了保证 JS 代码能够被正确执行，我们在拼接字符串时必须明确 <code>&#39;</code>与 <code>&quot;</code> 的使用，稍有不慎就会出现 <code>evalString</code> 失败的情况。在 Cocos 的官方论坛上，从大量的反馈中我们也能了解这里的确是一个十分容易踩坑的地方。而另一方面，对于我们项目本身而言，过度依赖  <code>evalString</code> 所产生的种种不确定因素也往往很难掌控，我们又不能一味地通过 <code>try/catch</code> 去解决。所幸的是，经过全局业务排查，目前项目中在绝大多数因此，在查阅官方文档后，我们决定绕过 <code>evalString</code> ，直接基于 JSB 绑定的方式进行通信。</p>
+<p>这里以下载器的接入为例。在我们的项目中，下载器是在 Android 与 iOS 侧分别各自实现。在改造之前的版本中，下载器的调用与回调基于 <code>callStaticMethod &lt;-&gt; evalString</code> 的方式。<br>每次调用下载都需要这样执行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if(cc.sys.isNative &amp;&amp; cc.sys.os == cc.sys.OS_IOS) &#123;</span><br><span class="line">    jsb.reflection.callStaticMethod(&apos;ABCFileDownloader&apos;, &apos;downloadFileWithUrl:cookie:savePath:&apos;, url, cookies, savePath);</span><br><span class="line">&#125; else if(cc.sys.isNative &amp;&amp; cc.sys.os == cc.sys.OS_ANDROID) &#123;</span><br><span class="line">    jsb.reflection.callStaticMethod(&quot;com/tencent/abcmouse/downloader/ABCFileDownloader&quot;, &quot;downloadFileWithUrl&quot;, &quot;(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V&quot;, url, cookies, savePath);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下载成功抑或是失败都需要通过拼接出类似如下的语句执行 JS：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">StringBuilder sb = new StringBuilder(JS_STRING_ON_DOWNLOAD_FINISH + &quot;(&quot;);</span><br><span class="line">sb.append(&quot;&apos;&quot; + success + &quot;&apos;,&quot;);</span><br><span class="line">sb.append(&quot;&apos;&quot; + url + &quot;&apos;,&quot;);</span><br><span class="line">sb.append(&quot;&apos;&quot; + savePath + &quot;&apos;,&quot;);</span><br><span class="line">sb.append(&quot;&apos;&quot; + msg + &quot;&apos;,&quot;);</span><br><span class="line">sb.append(&quot;&apos;&quot; +code + &quot;&apos;)&quot;);</span><br><span class="line">Cocos2dxJavascriptJavaBridge.evalString(sb.toString());</span><br></pre></td></tr></table></figure></p>
+<p>无论是调用抑或是回调都拼接繁琐又容易出错，全部数据不得不转化为字符串<del>（emmmm也不美观）</del>，而且还要考虑到evalString的执行效率问题。如果只是仅有的少数业务场景在使用尚勉强接受，但是当业务日趋复杂庞大，如果都要这样写，同时又没有详细的文档去规范约束，其后期维护成本可想而知。</p>
+<p>而当使用 JSB 改造后，我们调用只需如下寥寥几行代码且无需区分平台，更不必担心上述拼接隐患，相比之下逻辑要清晰许多：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">jsb.fileDownloader.requestDownload(url, savePath, cookies, options, (success, url, savePath, msg, code) =&gt; &#123;</span><br><span class="line">    // do whatever you want</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>那么接下来就以一个最简单的下载器的绑定流程为例，我来带大家学习下 JSB 手动绑定的大致流程。<br><strong>（虽然 Cocos 很人性化提供了自动绑定的配置文件，可以通过一些配置直接生成目标文件，减少了很多工作量。但是亲手来完成一次手动绑定的流程会帮助更为全面地了解整个绑定的实现流程，有助于加深理解。另一方面，当存在特殊需要自动绑定无法满足时，手动绑定也往往会更为灵活）</strong></p>
+<h2 id="前置"><a href="#前置" class="headerlink" title="前置"></a>前置</h2><p>在开始之前，我们需要需要知道有关 ScriptEngine 抽象层、相关 API 等相关知识，这部分内容如果已从 Cocos 文档了解可跳过直接进行 <strong>实践</strong>  部分。</p>
+<h3 id="抽象层"><a href="#抽象层" class="headerlink" title="抽象层"></a>抽象层</h3><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-manual/JSB2.0-Architecture.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<p>首先先来看一下上图 Cocos 官方提供的一张抽象层架构，在1.7版本中，抽象层被设计为一个与引擎没有关系的独立模块，对 JS 引擎的管理从 ScriptingCore 被移动到了 se::ScriptEngine 类中，ScriptingCore 被保留下来是希望通过它把引擎的一些事件传递给封装层，充当适配器的角色。在这个抽象层提供了对 JavaScriptCore、SpiderMonkey、V8、ChakraCore 等多种可选的 JS 执行引擎的封装。JSB 的大部分工作其实就是设定 JS 相关操作的 C++ 回调，在回调函数中关联 C++ 对象。它其实主要包含如下两种类型：</p>
+<ul>
+<li>注册 JS 函数（包含全局函数，类构造函数、类析构函数、类成员函数，类静态成员函数），绑定一个 C++ 回调</li>
+<li>注册 JS 对象的属性读写访问器，分别绑定读与写的 C++ 回调</li>
+</ul>
+<p>考虑到不同多种 JS 引擎的关键方法的定义各不相同，Cocos 团队使用 <strong>宏</strong> 来抹平这种回调函数定义与参数类型的差异，这里就不展开，详细可阅读文末Cocos Creator 的相关文档。<br><strong>值得一提的是，ScriptEngine 这层设计之初 Cocos 团队就将其定义为一个独立模块，完全不依赖 Cocos 引擎。</strong>我们开发者完全可以把 cocos/scripting/js-bindings/jswrapper 下的所有抽象层源码移植到其他项目中直接使用。</p>
+<h3 id="SE-类型"><a href="#SE-类型" class="headerlink" title="SE 类型"></a>SE 类型</h3><p>C++ 抽象层所有的类型都在 <code>se</code> 命名空间下，其为 ScriptEngine 的缩写。</p>
+<ul>
+<li><strong>se::ScriptEngine</strong><br>它是 JS 引擎的管理员，掌管 JS 引擎初始化、销毁、重启、Native 模块注册、加载脚本、强制垃圾回收、JS 异常清理、是否启用调试器。 它是一个单例，可通过 <code>se::ScriptEngine::getInstance()</code> 得到对应的实例。</li>
+<li><strong>se::Value</strong><br>可以被理解为 JS 变量在 C++ 层的引用。JS 变量有 <code>object</code>, <code>number</code>, <code>string</code>, <code>boolean</code>, <code>null</code>, <code>undefined</code> 六种类型，因此 <code>se::Value</code> 使用 union 包含 <code>object</code>, <code>number</code>, <code>string</code>, <code>boolean</code> 4 种有值类型，无值类型: <code>null</code>, <code>undefined</code> 可由私有变量 <code>_type</code> 直接表示。<br>如果 <code>se::Value</code> 中保存基础数据类型，比如 <code>number</code>，<code>string</code>，<code>boolean</code>，其内部是直接存储一份值副本。 <code>object</code> 的存储比较特殊，是通过 <code>se::Object*</code> 对 JS 对象的弱引用。</li>
+<li><strong>se::Object</strong><br>继承于 <code>se::RefCounter</code> 引用计数管理类，它保存了对 JS 对象的弱引用。我们在绑定回调中如果需要用到当前对象对应的 <code>se::Object</code>，只需要通过 <code>s.thisObject()</code> 即可获取。其中 s 为 <code>se::State</code> 类型。</li>
+<li><strong>se::Class</strong><br>用于暴露 C++ 类到 JS 中，它会在 JS 中创建一个对应名称的构造函数。Class 类型创建后，不需要手动释放内存，它会被封装层自动处理。<code>se::Class</code>提供了一些 API 用于定义 Class 的创建、静态/动态成员函数、属性读写等等，后面在实践时用到会做介绍。完整内容可查阅 Cocos 文档。</li>
+<li><strong>se::State</strong><br>它是绑定回调中的一个环境，我们通过 <code>se::State</code> 可以取得当前的 C++ 指针、<code>se::Object</code> 对象指针、参数列表、返回值引用。</li>
+</ul>
+<h3 id="宏"><a href="#宏" class="headerlink" title="宏"></a>宏</h3><p>前面有提到， 抽象层使用宏来抹平不同 JS 引擎关键函数定义与参数类型的不同，不管底层是使用什么引擎，开发者统一使用一种函数的定义。</p>
+<p>例如，抽象层所有的 JS 到 C++ 的回调函数的定义为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">bool foo(se::State&amp; s)</span><br><span class="line">&#123;</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line">SE_BIND_FUNC(foo) // 此处以回调函数的定义为例</span><br></pre></td></tr></table></figure></p>
+<p>我们在编写完回调函数后，需要记住使用 <code>SE_BIND_XXX</code> 系列的宏对回调函数进行包装。目前全部的 <code>SE_BIND_XXX</code> 宏如下所示。</p>
+<ul>
+<li><code>SE_BIND_PROP_GET</code>：包装一个 JS 对象属性读取的回调函数</li>
+<li><code>SE_BIND_PROP_SET</code>：包装一个 JS 对象属性写入的回调函数</li>
+<li><code>SE_BIND_FUNC</code>：包装一个 JS 函数，可用于全局函数、类成员函数、类静态函数</li>
+<li><code>SE_DECLARE_FUNC</code>：声明一个 JS 函数，一般在 .h 头文件中使用</li>
+<li><code>SE_BIND_CTOR</code>：包装一个 JS 构造函数</li>
+<li><code>SE_BIND_SUB_CLS_CTOR</code>：包装一个 JS 子类的构造函数，此子类使用 cc.Class.extend 继承 Native 绑定类</li>
+<li><code>SE_FINALIZE_FUNC</code>：包装一个 JS 对象被 GC 回收后的回调函数</li>
+<li><code>SE_DECLARE_FINALIZE_FUNC</code>：声明一个 JS 对象被 GC 回收后的回调函数</li>
+<li><code>_SE</code>：包装回调函数的名称，转义为每个 JS 引擎能够识别的回调函数的定义，注意，第一个字符为下划线，类似 Windows 下用的_T(“xxx”)来包装 Unicode 或者 MultiBytes 字符串</li>
+</ul>
+<p>在我们的简化版例子中，只需要用到 <code>SE_DECLARE_FUNC</code>、<code>SE_BIND_FUNC</code>即可。</p>
+<h3 id="类型转换辅助函数"><a href="#类型转换辅助函数" class="headerlink" title="类型转换辅助函数"></a>类型转换辅助函数</h3><p>类型转换辅助函数位于 cocos/scripting/js-bindings/manual/jsb_conversions.hpp/.cpp 中，包含了多种 <code>se::Value</code> 与 C++ 类型相互转化的方法。</p>
+<ul>
+<li><code>bool std_string_to_seval(const std::string&amp; v, se::Value* ret);</code></li>
+<li><code>bool seval_to_std_string(const se::Value&amp; v, std::string* ret);</code></li>
+<li><code>bool boolean_to_seval(bool v, se::Value* ret);</code></li>
+<li><code>bool seval_to_boolean(const se::Value&amp; v, bool* ret);</code><br>… …</li>
+</ul>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>在开始之前，我们需要明确一下流程。JSB 绑定简单来讲就是在C++层实现一些类库，然后经过一些特定处理可以在 JS 端进行对应方法调用的过程。因为采用 JS 为主要业务编写语言，使得我们在做一些 Native 的功能时会比较受限，例如文件、网络等等相关操作。</p>
+<p>以 Cocos2d-js 文档中 cc.Sprite 为例，在 JSB 中 如果使用 <code>new</code> 操作符来调用 cc.Sprite 的构造函数，实际上在 C++ 层会调用 js_cocos2dx_Sprite_constructor 函数。在这个 C++ 函数中，会为这个精灵对象分配内存，并把它添加到自动回收池，然后调用 JS 层的 <code>_ctor</code> 函数来完成初始化。在 <code>_ctor</code> 函数中会根据参数类型和数量调用不同的init函数，这些init函数也是C++函数的绑定：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#define SE_BIND_CTOR(funcName, cls, finalizeCb) \</span><br><span class="line">    void funcName##Registry(const v8::FunctionCallbackInfo&lt;v8::Value&gt;&amp; _v8args) \</span><br><span class="line">    &#123; \</span><br><span class="line">        v8::Isolate* _isolate = _v8args.GetIsolate(); \</span><br><span class="line">        v8::HandleScope _hs(_isolate); \</span><br><span class="line">        bool ret = true; \</span><br><span class="line">        se::ValueArray args; \</span><br><span class="line">        se::internal::jsToSeArgs(_v8args, &amp;args); \</span><br><span class="line">        se::Object* thisObject = se::Object::_createJSObject(cls, _v8args.This()); \</span><br><span class="line">        thisObject-&gt;_setFinalizeCallback(_SE(finalizeCb)); \</span><br><span class="line">        se::State state(thisObject, args); \</span><br><span class="line">        ret = funcName(state); \</span><br><span class="line">        if (!ret) &#123; \</span><br><span class="line">            SE_LOGE(&quot;[ERROR] Failed to invoke %s, location: %s:%d\n&quot;, #funcName, __FILE__, __LINE__); \</span><br><span class="line">        &#125; \</span><br><span class="line">        se::Value _property; \</span><br><span class="line">        bool _found = false; \</span><br><span class="line">        _found = thisObject-&gt;getProperty(&quot;_ctor&quot;, &amp;_property); \</span><br><span class="line">        if (_found) _property.toObject()-&gt;call(args, thisObject); \</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>三层的方法对应关系如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Javascript</th>
+<th style="text-align:left">JSB</th>
+<th style="text-align:left">Cocos2d-x</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">cc.Sprite.initWithSpriteFrameName</td>
+<td style="text-align:left">js_cocos2dx_Sprite_initWithSpriteFrameName</td>
+<td style="text-align:left">cocos2d::Sprite::initWithSpriteFrameName</td>
+</tr>
+<tr>
+<td style="text-align:left">cc.Sprite.initWithSpriteFrame</td>
+<td style="text-align:left">js_cocos2dx_Sprite_initWithSpriteFrame</td>
+<td style="text-align:left">cocos2d::Sprite::initWithSpriteFrame</td>
+</tr>
+<tr>
+<td style="text-align:left">cc.Sprite.initWithFile</td>
+<td style="text-align:left">js_cocos2dx_Sprite_initWithFile</td>
+<td style="text-align:left">cocos2d::Sprite::initWithFile</td>
+</tr>
+<tr>
+<td style="text-align:left">cc.Sprite.initWithTexture</td>
+<td style="text-align:left">js_cocos2dx_Sprite_initWithTexture</td>
+<td style="text-align:left">cocos2d::Sprite::initWithTexture</td>
+</tr>
+</tbody>
+</table>
+<p>这个调用过程的时序如下：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-js-binding-manual/jsb_process.png" alt="调用时序图（引自 Cocos2d-js 文档）" title>
+                </div>
+                <div class="image-caption">调用时序图（引自 Cocos2d-js 文档）</div>
+            </figure></p>
+<p>和上面的过程类似。首先，我们需要确定接口和字段，我们随便拟定一个最简单的下载器 <code>FileDownloader</code>，它所具备的是 <code>download(url, path, callback)</code> 接口，而在  <code>callback</code> 中我们需要拿到的则是 <code>code</code>，<code>msg</code>。并且为了方便使用，我们将它挂载在 <code>jsb</code> 对象下，这样我们便可以使用如下代码进行简单地调用:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">jsb.fileDownloader.download(url, path, (msg, code) =&gt; &#123;</span><br><span class="line">    // do whatever you want</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>确定接口后，我们可以开始着手码 C++ 部分了。首先来一发 <code>FileDownloader.h</code>，作为公共头文件供 Android/iOS 使用。接着 Android/iOS 分别实现各自的具体下载实现即可（此处略过），<code>reqCtx</code> 则用于存储回调对应关系：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">class FileDownloader &#123;</span><br><span class="line">        public:</span><br><span class="line">            typedef std::function&lt;void(const std::string&amp; msg, const int code)&gt; ResultCallback;</span><br><span class="line">            static FileDownloader* getInstance();</span><br><span class="line">            static void destroyInstance();</span><br><span class="line">            void download(const std::string&amp; url,</span><br><span class="line">                                         const std::string&amp; savePath,</span><br><span class="line">                                         const ResultCallback&amp; callback);</span><br><span class="line">            void onDownloadResult(const std::string msg, const int code);</span><br><span class="line">            ... ...</span><br><span class="line">        protected:</span><br><span class="line">            static FileDownloader* s_sharedFileDownloader;</span><br><span class="line">            std::unordered_map&lt;std::string, ResultCallback&gt; reqCtx;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>接下来我们进行最关键的绑定部分。<br>因为下载器就功能上分类属于 network 模块，我们可以选择将我们的 <code>FileDownloader</code> 的绑定实现在 Cocos 源码中现有的 <code>jsb_cocos2dx_network_auto</code> 中。在 <code>jsb_cocos2dx_network_auto.hpp</code> 中声明 JS 函数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SE_DECLARE_FUNC(js_cocos2dx_network_FileDownloader_download); // 声明成员函数，下载调用</span><br><span class="line">SE_DECLARE_FUNC(js_cocos2dx_network_FileDownloader_getInstance); // 声明静态函数，获取单例</span><br></pre></td></tr></table></figure></p>
+<p>随后在 <code>jsb_cocos2dx_network_auto.cpp</code> 中来注册 <code>FileDownloader</code> 和新声明的这两个函数到 JS 虚拟机中。首先先写好对应的两个方法实现留空，等注册逻辑完成后再来补全：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">static bool js_cocos2dx_network_FileDownloader_download(se::State &amp;s) &#123; // 方法名与声明时一致</span><br><span class="line">    // TODO</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">SE_BIND_FUNC(js_cocos2dx_network_FileDownloader_download); // 包装该方法</span><br><span class="line"></span><br><span class="line">static bool js_cocos2dx_network_FileDownloader_getInstance(se::State&amp; s) &#123; // 方法名与声明时一致</span><br><span class="line">    // TODO</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">SE_BIND_FUNC(js_cocos2dx_network_FileDownloader_getInstance); // 包装该方法</span><br></pre></td></tr></table></figure></p>
+<p>现在我们开始编写注册逻辑，新增一个注册方法用于收归 <code>FileDownloader</code> 的全部注册逻辑：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">bool js_register_cocos2dx_network_FileDownloader(se::Object* obj) &#123;</span><br><span class="line">    auto cls = se::Class::create(&quot;FileDownloader&quot;, obj, nullptr, nullptr);</span><br><span class="line">    cls-&gt;defineFunction(&quot;download&quot;, _SE(js_cocos2dx_network_FileDownloader_download));</span><br><span class="line">    cls-&gt;defineStaticFunction(&quot;getInstance&quot;, _SE(js_cocos2dx_network_FileDownloader_getInstance));</span><br><span class="line">    cls-&gt;install();</span><br><span class="line">    JSBClassType::registerClass&lt;cocos2d::network::FileDownloader&gt;(cls);</span><br><span class="line">    se::ScriptEngine::getInstance()-&gt;clearException();</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们来看看这个方法里做了些什么重要的事情：</p>
+<ol>
+<li>调用 <code>se::Class::create(className, obj, parentProto, ctor)</code> 方法，创建了一个名为 <code>FileDownloader</code> 的 Class，注册成功后，在 JS 层中可以通过 <code>let xxx = new FileDownloader();</code>的方式创建实例。</li>
+<li>调用 <code>defineFunction(name, func)</code> 方法，定义了一个成员函数 <code>download</code>，并将其实现绑定到包装后的 <code>js_cocos2dx_network_FileDownloader_download</code> 上。</li>
+<li>调用 <code>defineStaticFunction(name, func)</code> 方法，定义了一个静态成员函数 <code>getInstance</code>，并将其实现绑定到包装后的 <code>js_cocos2dx_network_FileDownloader_getInstance</code> 上。</li>
+<li>调用 <code>install()</code> 方法，将自己注册到 JS 虚拟机中。</li>
+<li>调用 <code>JSBClassType::registerClass</code> 方法，将 生成的 Class 与 C++ 层的类对应起来（内部通过 <code>std::unordered_map&lt;std::string, se::Class*&gt;</code>实现）。</li>
+</ol>
+<p>通过以上这几步，我们完成了关键的注册部分，当然不要忘记在 <code>network</code> 模块的注册入口添加 <code>js_register_cocos2dx_network_FileDownloader</code> 的调用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">bool register_all_cocos2dx_network(se::Object* obj)</span><br><span class="line">&#123;</span><br><span class="line">    // Get the ns</span><br><span class="line">    se::Value nsVal;</span><br><span class="line">    if (!obj-&gt;getProperty(&quot;jsb&quot;, &amp;nsVal))</span><br><span class="line">    &#123;</span><br><span class="line">        se::HandleObject jsobj(se::Object::createPlainObject());</span><br><span class="line">        nsVal.setObject(jsobj);</span><br><span class="line">        obj-&gt;setProperty(&quot;jsb&quot;, nsVal);</span><br><span class="line">    &#125;</span><br><span class="line">    se::Object* ns = nsVal.toObject();</span><br><span class="line"></span><br><span class="line">    ... ...</span><br><span class="line">    // 将前面生成的 Class 注册 设置为 jsb 的一个属性，这样我们便能通过</span><br><span class="line">    // let downloader = new jsb.FileDownloader();</span><br><span class="line">    // 获取实例</span><br><span class="line">    js_register_cocos2dx_network_FileDownloader(ns);</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>完成这一步，我们的 Class 已经成功绑定，现在回来继续完善刚才留空的方法。</p>
+<p>首先是 <code>getInstance()</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">static bool js_cocos2dx_network_FileDownloader_getInstance(se::State&amp; s)</span><br><span class="line">&#123;</span><br><span class="line">    const auto&amp; args = s.args();</span><br><span class="line">    size_t argc = args.size();</span><br><span class="line">    CC_UNUSED bool ok = true;</span><br><span class="line">    if (argc == 0) &#123;</span><br><span class="line">        cocos2d::network::FileDownloader* result = cocos2d::network::FileDownloader::getInstance(); // C++ 单例</span><br><span class="line">        ok &amp;= native_ptr_to_seval&lt;cocos2d::network::FileDownloader&gt;((cocos2d::network::FileDownloader*)result, &amp;s.rval());</span><br><span class="line">        SE_PRECONDITION2(ok, false, &quot;js_cocos2dx_network_FileDownloader_getInstance : Error processing arguments&quot;);</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">    SE_REPORT_ERROR(&quot;wrong number of arguments: %d, was expecting %d&quot;, (int)argc, 0);</span><br><span class="line">    return false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>前面提到，我们可以通过 <code>se::State</code> 获取到 C++ 指针、<code>se::Object</code> 对象指针、参数列表、返回值引用。梳理逻辑如下：</p>
+<ol>
+<li><code>args()</code> 获取 JS 带过来的全部参数（<code>se::Value</code> 的 vector）；</li>
+<li>参数个数判断，因为这里的 <code>getInstance()</code> 并不需要额外参数，因此参数为 0；</li>
+<li><code>native_ptr_to_seval()</code> 用于在绑定层根据一个 C++ 对象指针获取一个 <code>se::Value</code>，并赋返回值给<code>rval()</code>至 JS 层；</li>
+</ol>
+<p>到这里，<code>getInstance()</code>的绑定层逻辑已全部完成，我们已经可以通过：<code>let downloader = jsb.FileDownloader.getInstance()</code> 获取实例了。</p>
+<p>接着是 <code>download()</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">static bool js_cocos2dx_network_FileDownloader_download(se::State &amp;s) &#123;</span><br><span class="line">    cocos2d::network::FileDownloader *cobj = (cocos2d::network::FileDownloader *) s.nativeThisObject();</span><br><span class="line">    SE_PRECONDITION2(cobj, false,</span><br><span class="line">                     &quot;js_cocos2dx_network_FileDownloader_download : Invalid Native Object&quot;);</span><br><span class="line">    const auto &amp;args = s.args();</span><br><span class="line">    size_t argc = args.size();</span><br><span class="line">    CC_UNUSED bool ok = true;</span><br><span class="line">    if (argc == 3) &#123;</span><br><span class="line">        std::string url;</span><br><span class="line">        std::string path;</span><br><span class="line">        ok &amp;= seval_to_std_string(args[0], &amp;url); // 转化为std::string url</span><br><span class="line">        ok &amp;= seval_to_std_string(args[1], &amp;path); // 转化为std::string path</span><br><span class="line">        std::function&lt;void(const std::string&amp; msg,</span><br><span class="line">                           const int code)&gt; callback;</span><br><span class="line">        do &#123;</span><br><span class="line">            if (args[2].isObject() &amp;&amp; args[2].toObject()-&gt;isFunction())</span><br><span class="line">            &#123;</span><br><span class="line">                se::Value jsThis(s.thisObject());</span><br><span class="line">                // 获取 JS 回调</span><br><span class="line">                se::Value jsFunc(args[2]);</span><br><span class="line">                // 如果目标类是一个单例则不能用 se::Object::attachObject 去关联</span><br><span class="line">                // 必须使用 se::Object::root，无需关心 unroot，unroot 的操作会随着 lambda 的销毁触发 jsFunc 的析构，在 se::Object 的析构函数中进行 unroot 操作。</span><br><span class="line">                // 如果使用 s.thisObject-&gt;attachObject(jsFunc.toObject);会导致对应的 func 和 target 永远无法被释放，引发内存泄露。</span><br><span class="line">                jsFunc.toObject()-&gt;root(); </span><br><span class="line">                auto lambda = [=](const std::string&amp; msg,</span><br><span class="line">                                  const int code) -&gt; void &#123;</span><br><span class="line">                    se::ScriptEngine::getInstance()-&gt;clearException();</span><br><span class="line">                    se::AutoHandleScope hs;</span><br><span class="line">                    CC_UNUSED bool ok = true;</span><br><span class="line">                    se::ValueArray args;</span><br><span class="line">                    args.resize(2);</span><br><span class="line">                    ok &amp;= std_string_to_seval(msg, &amp;args[0]);</span><br><span class="line">                    ok &amp;= int32_to_seval(code, &amp;args[1]);</span><br><span class="line">                    se::Value rval;</span><br><span class="line">                    se::Object* thisObj = jsThis.isObject() ? jsThis.toObject() : nullptr;</span><br><span class="line">                    se::Object* funcObj = jsFunc.toObject();</span><br><span class="line">                    // 执行 JS 方法回调</span><br><span class="line">                    bool succeed = funcObj-&gt;call(args, thisObj, &amp;rval);</span><br><span class="line">                    if (!succeed) &#123;</span><br><span class="line">                        se::ScriptEngine::getInstance()-&gt;clearException();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;;</span><br><span class="line">                callback = lambda;</span><br><span class="line">            &#125;</span><br><span class="line">            else</span><br><span class="line">            &#123;</span><br><span class="line">                callback = nullptr;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; while(false)</span><br><span class="line">                ;</span><br><span class="line">        SE_PRECONDITION2(ok, false, &quot;js_cocos2dx_network_FileDownloader_download : Error processing arguments&quot;);</span><br><span class="line">        cobj-&gt;download(url, path, callback);</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">    SE_REPORT_ERROR(&quot;wrong number of arguments: %d, was expecting %d&quot;, (int) argc, 3);</span><br><span class="line">    return false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>通过 <code>seval_to_std_string</code> 方法获取转化 C++ 后的 url、path 参数和原始 jsFunc。</li>
+<li>手动构造回调 function，将 msg 和 code 转化为 <code>se::Value</code>。</li>
+<li>通过 <code>funcObj-&gt;call</code> 执行 JS 方法进行回调。</li>
+</ol>
+<p>以上即为一次普通调用的回调的执行过程的绑定。现在我们还剩下一些收尾工作，我们需要将 <code>FileDownloader</code> 真正成为单例，在 JS 层无需手动实例化即可使用。<br>因为下载器属于通用组件，所以我们需要尽早将其实例化并成功挂载，因此我们需要修改 <code>jsb_boot.js</code>，这个文件会在 Cocos 引擎初始化时调用，我们在其中补充如下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// FileDownloader</span><br><span class="line">jsb.fileDownloader = jsb.FileDownloader.getInstance();</span><br><span class="line">delete jsb.FileDownloader;</span><br></pre></td></tr></table></figure>
+<p>最后，考虑到内存释放的风险，我们还需要在 <code>CCDirector.cpp</code> 中的 <code>reset()</code> 方法中进行相关回收：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">network::FileDownloader::destroyInstance();</span><br></pre></td></tr></table></figure>
+<p>================================================</p>
+<p>以上就是全部的绑定流程，在分别编译到 Android/iOS 环境后，我们就能够通过 <code>jsb.fileDownloader.download()</code> 进行下载调用了。<br>（PS：一定切记在使用前进行 <code>CC_JSB</code> 的宏判断，因为非 JSB 环境下是无法使用的）</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们现在来总结一下手动绑定改造的详细流程。一般而言，常用的 JSB 的改造流程大致如下：</p>
+<ul>
+<li>确定方法接口与 JS/Native 公共字段</li>
+<li>声明头文件，并分别实现 Android JNI 与 OC 具体业务代码</li>
+<li>编写抽象层代码，将必要的类与对应方法注册到 JS 虚拟机中</li>
+<li>将绑定的类挂载在 JS 中的指定对象（类似命名空间）中</li>
+</ul>
+<p>在下一篇（原理篇）中，我们会继续从源码详细分析 ScriptEngine 的结构和完整的 JSB 调用原理，敬请期待。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos-Creator/">Cocos Creator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JSB/">JSB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS引擎/">JS引擎</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/&title=《【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/&title=《【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）》 — OEDx&url=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/06/20/CocosCreator-TextureCompression-Plugin/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Cocos Creator 纹理压缩插件化</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/05/29/serverless-performance/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">前端学Serverless系列--性能调优</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/&title=《【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/&title=《【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《【Cocos Creator】拒绝 evalString 进行回调，使用 JSB 进行手动绑定（流程篇）》 — OEDx&url=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/05/29/cocos-creator-js-binding-manual/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACrElEQVR42u3awY4iMQwE0Pn/n969joSAKjsZ9eFxQgi68xopscr++Ylf/369Xj9/9/3P7z9f5/WO73574IWHh4e3WPrrK/lOsrjP+Pya7a/w8PDw7vHyzT0HfLlxsPR8PW8/x8PDw3sMb3YAzA6DvLzGw8PDeyavLbWLpVwINfDw8PDu8ZIwoi2IP18nX3objuDh4eHd5uVdpOe8v9Lfw8PDw1t31WftqDaWbYOGYrV4eHh4F3htKJCXzknImwcT7XXw8PDw/pK3GZ86u623o2Bv14CHh4d3lLdvWeVldPSk142xOp/Gw8PDK3mzcrbdrNvHtw8m8PDw8O7x8mj11NDAZkBheO7h4eHhXePNiuBTQ1p5Y6x4ZHh4eHgXePsoNi+I21/tA2U8PDy8G7y8/N08iHYIoA12vxwJeHh4eBd4eZSQHwD7A6Mt6w8kJXh4eHiTdPRYAd0+iPxYaq+Gh4eHd4PXFtNtQdyOI+R3LP4lPDw8vEO8tgG2iR5a9qypFh0JeHh4eAvepv2/GZNqQ4pVfIyHh4d3lPdlXKksoNu22WyjL8IIPDw8vAu8Wat+dgC0EW17FB2YKcPDw8MbZZ6nxgKSWCH/bT5kgIeHh3ebN7tEAmiD4P1h87aYxsPDwzvKS7b7fYN/ExZvjhw8PDy827ykzb/ps+WHxyzY/ZK14OHh4f0hLx/MyocA9tt9/pfg4eHh3ePtl7tZ4n6oKwoj8PDw8Na8/UJnxfdm3CoPmvHw8PBu8NoNNw8jNotOYuJZIw0PDw/vFC8/DNpIYv8Q87vUWQseHh7empfkn7NG12bg4NiZhoeHh/cw3myjb+84XA8eHh7eA3izVlYS8s6GDA4fDHh4eHgxb3PpTctqX2R/uQseHh7eBV67le8Xmm/xszEFPDw8vGu8/zV5XpOWcgFIAAAAAElFTkSuQmCC" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

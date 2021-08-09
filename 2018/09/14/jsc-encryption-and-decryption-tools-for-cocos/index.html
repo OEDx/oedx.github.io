@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>适用于 Cocos 的 JSC 加解密工具 | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos">
+    <meta name="description" content="脚本地址：Github简介此脚本用于CocosCreator加密编译后 jsc 文件解密为 js 文件和 js 文件加密为 jsc 文件。 CocosCreator构建时，是否勾选Zip压缩选项决定了使用脚本的参数不同。在CocosCreator的构建面板下图的位置中，查看加密密钥和是否开启Zip压缩。">
+<meta name="keywords" content="Cocos">
+<meta property="og:type" content="article">
+<meta property="og:title" content="适用于 Cocos 的 JSC 加解密工具">
+<meta property="og:url" content="http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="脚本地址：Github简介此脚本用于CocosCreator加密编译后 jsc 文件解密为 js 文件和 js 文件加密为 jsc 文件。 CocosCreator构建时，是否勾选Zip压缩选项决定了使用脚本的参数不同。在CocosCreator的构建面板下图的位置中，查看加密密钥和是否开启Zip压缩。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/1557824277.88SmartPic.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="适用于 Cocos 的 JSC 加解密工具">
+<meta name="twitter:description" content="脚本地址：Github简介此脚本用于CocosCreator加密编译后 jsc 文件解密为 js 文件和 js 文件加密为 jsc 文件。 CocosCreator构建时，是否勾选Zip压缩选项决定了使用脚本的参数不同。在CocosCreator的构建面板下图的位置中，查看加密密钥和是否开启Zip压缩。">
+<meta name="twitter:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/1557824277.88SmartPic.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">适用于 Cocos 的 JSC 加解密工具</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">适用于 Cocos 的 JSC 加解密工具</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2018-09-14T17:01:35.000Z" itemprop="datePublished" class="page-time">
+  2018-09-14
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#脚本地址：Github"><span class="post-toc-number">1.</span> <span class="post-toc-text">脚本地址：Github</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#简介"><span class="post-toc-number">2.</span> <span class="post-toc-text">简介</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#使用说明"><span class="post-toc-number">3.</span> <span class="post-toc-text">使用说明</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#参数说明"><span class="post-toc-number">4.</span> <span class="post-toc-text">参数说明</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#参考文章"><span class="post-toc-number">5.</span> <span class="post-toc-text">参考文章</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-jsc-encryption-and-decryption-tools-for-cocos" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">适用于 Cocos 的 JSC 加解密工具</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2018-09-14 17:01:35" datetime="2018-09-14T17:01:35.000Z" itemprop="datePublished">2018-09-14</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p><a href="http://khanzhang.cn">张韩(khanzhang)</a></p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h3 id="脚本地址：Github"><a href="#脚本地址：Github" class="headerlink" title="脚本地址：Github"></a>脚本地址：<a href="https://github.com/SNGfamily/cocos-jsc-endecryptor" target="_blank" rel="noopener">Github</a></h3><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>此脚本用于CocosCreator加密编译后 jsc 文件解密为 js 文件和 js 文件加密为 jsc 文件。</p>
+<p>CocosCreator构建时，是否勾选Zip压缩选项决定了使用脚本的参数不同。在CocosCreator的构建面板下图的位置中，查看加密密钥和是否开启Zip压缩。<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/1557824277.88SmartPic.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure></p>
+<blockquote>
+<p>此脚本在 macOS High Sierra 10.13.6 系统，Python 2.7 下运行正常，其他环境未测试</p>
+</blockquote>
+<h3 id="使用说明"><a href="#使用说明" class="headerlink" title="使用说明"></a>使用说明</h3><p>命令行使用：</p>
+<ol>
+<li><p>如果使用加密功能，第二个参数设置为 <strong>encrypt</strong>；如果使用解密功能，第二个参数设置为 <strong>decrypt</strong>。此参数为必选参数</p>
+</li>
+<li><p>如需设置加密密钥，添加 –key 或 -k 参数，并跟上加密密钥字符串。如不设置，会在命令行中提示输入</p>
+</li>
+<li><p>如需设置为非压缩方案，添加 –nozip 或 -n 参数，并设置为 true。如不设置，默认为压缩方案</p>
+<blockquote>
+<p>非压缩方案是指Cocos编译时没有勾选“Zip 压缩”选项</p>
+</blockquote>
+</li>
+<li><p>找到CocosCreator编译出来的 .jsc 文件，一般在工程目录下 <strong>build/jsb-default/src</strong> 文件夹下。你可以在脚本运行时，根据提示输入文件的路径来指定对应文件。也可以添加 –path 或 -p 参数，设置为文件路径。如不设置，会在命令行中提示输入</p>
+</li>
+</ol>
+<ol start="5">
+<li><p>运行脚本即可</p>
+<ul>
+<li>encrypt：解密后文件路径为 <strong>decryptOutput/decrypt.js</strong></li>
+<li>decrypt: 加密后文件路径为 <strong>encryptOutput/projectChanged.jsc</strong></li>
+</ul>
+</li>
+<li><p>举例：</p>
+<ul>
+<li>./edc.py encrypt –key yourkey –nozip true</li>
+<li>./edc.py decrypt –nozip true</li>
+<li>./edc.py decrypt</li>
+</ul>
+</li>
+</ol>
+<p>其他Python脚本中引用：</p>
+<ol>
+<li>下载edc.py文件放到你的脚本目录下，通过 <strong>import edc</strong> 进行导入</li>
+<li>直接调用 edc.decrypt(is_zip, key, jsc_path) 或 edc.encrypt(is_zip, key, js_path) 即可，可参考 edcExample.py 文件</li>
+</ol>
+<blockquote>
+<p>如果是非交互式脚本，请务必在调用方法时传入有效的参数，并保证其正确性</p>
+</blockquote>
+<h3 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h3><table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>缩写</th>
+<th>是否必须</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>encrypt/decrypt</td>
+<td>无</td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–key</td>
+<td>-k</td>
+<td>否</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–nozip</td>
+<td>-n</td>
+<td>否</td>
+<td>false</td>
+</tr>
+<tr>
+<td>–path</td>
+<td>-p</td>
+<td>否</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><ul>
+<li><a href="http://blog.shuax.com/archives/decryptcocos.html" target="_blank" rel="noopener">形同虚设的cocos默认加密</a></li>
+<li><a href="https://bbs.pediy.com/thread-216800.htm" target="_blank" rel="noopener">cocos2dx lua 反编译</a></li>
+</ul>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/&title=《适用于 Cocos 的 JSC 加解密工具》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/&title=《适用于 Cocos 的 JSC 加解密工具》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《适用于 Cocos 的 JSC 加解密工具》 — OEDx&url=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/01/14/precise-positioning-cocos-online-error/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">精确定位 Cocos 线上报错</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2018/07/07/cocos-based-high-performance-cross-platform-app-developing/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">基于 Cocos 的高性能跨平台开发方案</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/&title=《适用于 Cocos 的 JSC 加解密工具》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/&title=《适用于 Cocos 的 JSC 加解密工具》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《适用于 Cocos 的 JSC 加解密工具》 — OEDx&url=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACw0lEQVR42u3aQW7jMBAEQP//0w6wl+RiuXtGTLxA6WQIssTigSR65vGIr+e/6+fvn3dePZn891lejxMXHh4e3mjo16+7/syr55NnZrxiCvDw8PCO8ZLNIF+Bk02i/UryJB4eHt6n8WaH43YKrjctPDw8vP+RtxlcMk3JZOHh4eF9Ai9/XTuU5EjdhiBHshY8PDy8A1Wkz/l9vL6Hh4eHNzry3luaao/sNzQZ4OHh4R3g5aHDvsTVBgrtwTrKWvDw8PDWvLa0n0zBpiEgCXbzMeDh4eGd4LVtAUlLQR77tpHHcCrx8PDwDvDyVqf8Xzkm3wDyKSi2Cjw8PLySN4sVZiX/ZKBFOJtsHnh4eHgHeG1s2m4Js8V9P914eHh453ibASXRwCzGbbunXr4NDw8P7zCvbZzal/bz1oS24eBNGIGHh4e35uUvLRbl0VF7tg28fAYPDw/vAK8tOLXNWG17VltIKxoF8PDw8H6F17ZSbZb+Tcwx3Bjw8PDwFrx8KPmr86NwHiLn/4qqfHh4eHg38eoDa1lI2wOSjQoPDw/v93nXy32xHOcNUusj+5vn8fDw8A7wZkt8Hi7cdb+NevHw8PDu5bXl/32MO2tBGMYieHh4eMd4CeD6d3GoHZXB2kJakTTj4eHhjXjJUr45QOffamPl4ZEaDw8Pb3tnGDokQe0sok22qHay8PDw8O7itUfVolQfF/jbI/X1NUwv8PDw8GJevW8sgox8QPdGG3h4eHj38p7l1Za72iN1uz282Zbw8PDwDvDaZTePBtoGgk1BbrOd4OHh4c14yWYwi1ZnxapZRPISj4eHh3eM1x5wN40Fs5BitnXh4eHhfQJvFte28UHb1PWmgQAPDw/vj3h5AaxtL8gjhvoreHh4eMd4eRiRD6J9Pp/WojMCDw8P7wBvXwCbtRTkR/O2seDm+h4eHh7e950vfnpBBR4y+r0AAAAASUVORK5CYII=" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

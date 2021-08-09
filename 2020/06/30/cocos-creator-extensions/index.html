@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>人生苦短，我们为 Cocos Creator 开发的插件和工具 | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos Creator,Cocos,插件">
+    <meta name="description" content="在使用 Cocos Creator 开发项目的过程中，为了提高开发效率我们开发了很多扩展插件，本文介绍常用的几款扩展，抛砖引玉，希望给大家带来帮助。 网页扩展：运行时查看场景节点树Cocos Creator 本地项目通常会在 Chrome 上调试运行，借助 Chrome 强大的开发者工具，我们可以对网页的性能、网络、脚本逻辑等进行调试优化。然而对于游戏来说，场景中的节点组件信息并没有办法直观的获取">
+<meta name="keywords" content="Cocos Creator,Cocos,插件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="人生苦短，我们为 Cocos Creator 开发的插件和工具">
+<meta property="og:url" content="http://oedx.github.io/2020/06/30/cocos-creator-extensions/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="在使用 Cocos Creator 开发项目的过程中，为了提高开发效率我们开发了很多扩展插件，本文介绍常用的几款扩展，抛砖引玉，希望给大家带来帮助。 网页扩展：运行时查看场景节点树Cocos Creator 本地项目通常会在 Chrome 上调试运行，借助 Chrome 强大的开发者工具，我们可以对网页的性能、网络、脚本逻辑等进行调试优化。然而对于游戏来说，场景中的节点组件信息并没有办法直观的获取">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/ccc-devtools-preview1.gif">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/vscode-cc-js-preview.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/vscode-cc-js-preview1.gif">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/vscode-cc-js-preview2.gif">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/vscode-cc-js-preview3.gif?40">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/wx-subpackage-helper-preview1.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/quick-open-preview1.gif">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/cc-console-utils-preview1.jpeg">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/cc-console-utils-preview2.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-extensions/jsc-encryption-preview1.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="人生苦短，我们为 Cocos Creator 开发的插件和工具">
+<meta name="twitter:description" content="在使用 Cocos Creator 开发项目的过程中，为了提高开发效率我们开发了很多扩展插件，本文介绍常用的几款扩展，抛砖引玉，希望给大家带来帮助。 网页扩展：运行时查看场景节点树Cocos Creator 本地项目通常会在 Chrome 上调试运行，借助 Chrome 强大的开发者工具，我们可以对网页的性能、网络、脚本逻辑等进行调试优化。然而对于游戏来说，场景中的节点组件信息并没有办法直观的获取">
+<meta name="twitter:image" content="http://oedx.github.io/images/cocos-creator-extensions/ccc-devtools-preview1.gif">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">人生苦短，我们为 Cocos Creator 开发的插件和工具</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">人生苦短，我们为 Cocos Creator 开发的插件和工具</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2020-06-30T16:31:28.000Z" itemprop="datePublished" class="page-time">
+  2020-06-30
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#网页扩展：运行时查看场景节点树"><span class="post-toc-number">1.</span> <span class="post-toc-text">网页扩展：运行时查看场景节点树</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#VS-Code-扩展：JavaScript-代码支持函数跳转"><span class="post-toc-number">2.</span> <span class="post-toc-text">VS Code 扩展：JavaScript 代码支持函数跳转</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#编辑器扩展：微信小游戏子包依赖检查"><span class="post-toc-number">3.</span> <span class="post-toc-text">编辑器扩展：微信小游戏子包依赖检查</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#编辑器扩展：快速打开场景"><span class="post-toc-number">4.</span> <span class="post-toc-text">编辑器扩展：快速打开场景</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#控制台扩展：控制台查看节点树，节点属性"><span class="post-toc-number">5.</span> <span class="post-toc-text">控制台扩展：控制台查看节点树，节点属性</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#适用于-Cocos-的-JSC-加解密工具"><span class="post-toc-number">6.</span> <span class="post-toc-text">适用于 Cocos 的 JSC 加解密工具</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#参考"><span class="post-toc-number">7.</span> <span class="post-toc-text">参考</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-cocos-creator-extensions" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">人生苦短，我们为 Cocos Creator 开发的插件和工具</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2020-06-30 16:31:28" datetime="2020-06-30T16:31:28.000Z" itemprop="datePublished">2020-06-30</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p><a href="https://www.github.com/potato47">付多兴(nextfu)</a></p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>在使用 Cocos Creator 开发项目的过程中，为了提高开发效率我们开发了很多扩展插件，本文介绍常用的几款扩展，抛砖引玉，希望给大家带来帮助。</p>
+<h2 id="网页扩展：运行时查看场景节点树"><a href="#网页扩展：运行时查看场景节点树" class="headerlink" title="网页扩展：运行时查看场景节点树"></a>网页扩展：运行时查看场景节点树</h2><p>Cocos Creator 本地项目通常会在 Chrome 上调试运行，借助 Chrome 强大的开发者工具，我们可以对网页的性能、网络、脚本逻辑等进行调试优化。然而对于游戏来说，场景中的节点组件信息并没有办法直观的获取和修改，无法快速定位问题。为了解决这个痛点，我们可以修改 Cocos Creator 预览时的网页模版，让其显示更多的场景信息。</p>
+<p>下面是修改过后的预览游戏界面</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/ccc-devtools-preview1.gif" alt="ccc-devtools 效果预览" title>
+                </div>
+                <div class="image-caption">ccc-devtools 效果预览</div>
+            </figure>
+<p>扩展了如下功能：</p>
+<ul>
+<li>场景节点树实时显示，节点、组件属性实时显示更改</li>
+<li>可视化缓存资源</li>
+<li>标记场景中节点位置</li>
+<li>输出节点、组件引用到控制台</li>
+</ul>
+<p>源码：</p>
+<p><a href="https://github.com/potato47/ccc-devtools" target="_blank" rel="noopener">https://github.com/potato47/ccc-devtools</a></p>
+<p>此页面使用了 <a href="https://github.com/vuejs/vue" target="_blank" rel="noopener">vue</a> + <a href="https://github.com/vuetifyjs/vuetify" target="_blank" rel="noopener">vuetify</a> 开发，对于单页面应用来说 vue 是非常好的选择，大家也可以基于这种方式来定制自己项目的预览界面。</p>
+<h2 id="VS-Code-扩展：JavaScript-代码支持函数跳转"><a href="#VS-Code-扩展：JavaScript-代码支持函数跳转" class="headerlink" title="VS Code 扩展：JavaScript 代码支持函数跳转"></a>VS Code 扩展：JavaScript 代码支持函数跳转</h2><p>Cocos Creator 支持 JavaScript 和 TypeScript 两种语言，如果你是用 VS Code 来开发 Cocos Creator 的 js 项目，那你的编程体验应该不是很好，因为 Cocos Creator 的组件脚本是一套自定义的结构，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">const mylog = require(&apos;mylog&apos;);</span><br><span class="line"></span><br><span class="line">cc.Class(&#123;</span><br><span class="line">  properties: &#123;</span><br><span class="line">    node1: cc.Node,</span><br><span class="line">    node2: cc.Node,</span><br><span class="line">    label1: cc.Label,</span><br><span class="line">    label2: cc.Label,</span><br><span class="line">  &#125;,</span><br><span class="line">  start: function() &#123;</span><br><span class="line">    this.method1();</span><br><span class="line">  &#125;,</span><br><span class="line">  method1: function() &#123;</span><br><span class="line">    console.log(&apos;method1&apos;);</span><br><span class="line">  &#125;,</span><br><span class="line">  method2: function() &#123;</span><br><span class="line">    console.log(&apos;method2&apos;);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>在这个结构下，VS Code 不能识别 <code>this</code>，当你在 start 方法里输入 <code>this.</code> 的时候无法准确的获得可以访问的属性和方法，也无法通过点击方法名或者模块名来跳转到定义位置。</p>
+<p>好在 VS Code 有丰富的扩展 API，通过学习<a href="https://code.visualstudio.com/api/language-extensions/programmatic-language-features" target="_blank" rel="noopener">文档</a>，我们开发出了一款让 js 代码支持函数跳转，属性提示的插件。 大家可以在 VS Code 插件商店里搜索 “Cocos Creator JS“ 来下载使用。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/vscode-cc-js-preview.png" alt="插件商店下载" title>
+                </div>
+                <div class="image-caption">插件商店下载</div>
+            </figure>
+<p>下面是预览效果</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/vscode-cc-js-preview1.gif" alt="js代码支持函数跳转" title>
+                </div>
+                <div class="image-caption">js代码支持函数跳转</div>
+            </figure>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/vscode-cc-js-preview2.gif" alt="js代码提示" title>
+                </div>
+                <div class="image-caption">js代码提示</div>
+            </figure>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/vscode-cc-js-preview3.gif?40" alt="模块跳转" title>
+                </div>
+                <div class="image-caption">模块跳转</div>
+            </figure>
+<p>源码：</p>
+<p><a href="https://github.com/potato47/vscode-cocos-creator-js" target="_blank" rel="noopener">https://github.com/potato47/vscode-cocos-creator-js</a></p>
+<h2 id="编辑器扩展：微信小游戏子包依赖检查"><a href="#编辑器扩展：微信小游戏子包依赖检查" class="headerlink" title="编辑器扩展：微信小游戏子包依赖检查"></a>编辑器扩展：微信小游戏子包依赖检查</h2><p>得益于 Cocos Creator 优秀的跨平台能力，我们的项目上线了 Android、iOS、Web 和微信小游戏平台。由于微信平台对代码包大小有限制，在上线微信小游戏时我们使用了代码分包功能，但是项目开发过程中有些模块互相耦合，导致分包后主包与子包或者子包之间有依赖，在被依赖包加载前就对其进行导入会导致程序出错。为了解决这个问题我们开发了一款 Creator 插件，可以对子包依赖自动检测。效果如下:</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/wx-subpackage-helper-preview1.png" alt="子包依赖检查插件预览" title>
+                </div>
+                <div class="image-caption">子包依赖检查插件预览</div>
+            </figure>
+<p>点击检查依赖按钮后，插件会自动检查所有子包间的依赖，并可视化的显示出来，点击文件名定位到脚本位置，根据修改建议修改即可。</p>
+<p>源码：</p>
+<p><a href="https://github.com/potato47/wx-subpackage-helper" target="_blank" rel="noopener">https://github.com/potato47/wx-subpackage-helper</a></p>
+<h2 id="编辑器扩展：快速打开场景"><a href="#编辑器扩展：快速打开场景" class="headerlink" title="编辑器扩展：快速打开场景"></a>编辑器扩展：快速打开场景</h2><p>在使用 Cocos Creator 编辑器过程中个人体验最不好的就是资源管理器里的搜索功能了，在 1.x 版本搜索资源时每输入一个字母都会调用一次全局过滤资源的函数，输入过程中就会感觉到持续的卡顿，在 2.x 版本稍微优化了一下体验，改为敲回车再执行过滤函数，但在资源繁多的项目里搜索依然会卡顿。为了解决这个不大但影响心情的问题，我们开发了一款搜索插件，可以快速搜索打开场景或者预制体资源。无需等待，无需鼠标。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/quick-open-preview1.gif" alt="quick-open插件预览" title>
+                </div>
+                <div class="image-caption">quick-open插件预览</div>
+            </figure>
+<p>源码：</p>
+<p><a href="https://github.com/potato47/cocos-creator-quick-open-x" target="_blank" rel="noopener">https://github.com/potato47/cocos-creator-quick-open-x</a></p>
+<h2 id="控制台扩展：控制台查看节点树，节点属性"><a href="#控制台扩展：控制台查看节点树，节点属性" class="headerlink" title="控制台扩展：控制台查看节点树，节点属性"></a>控制台扩展：控制台查看节点树，节点属性</h2><p>通过 Chrome 的开发者工具我们可以直接对原生平台中 Cocos Creator 的 JavaScript 代码进行远程调试，但一些 UI 相关问题依然不好定位，如果能在控制台里查看节点树就会方便很多。</p>
+<p>首先介绍一下 console.group 和 console.groupEnd 这两个函数，它们可以组成一个可以折叠的标签，用于将输出信息分组，console.group 默认展开，相应的还有一个 console.groupCollapsed  默认折叠，显然我们可以用它们输出树形结构。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">function tree(node = cc.director.getScene()) &#123;</span><br><span class="line">    let style = `color: $&#123;node.parent === null || node.activeInHierarchy ? &apos;green&apos; : &apos;grey&apos;&#125;;`;</span><br><span class="line">    if (node.childrenCount &gt; 0) &#123;</span><br><span class="line">        console.groupCollapsed(`%c$&#123;node.name&#125;`, style);</span><br><span class="line">        node.children.forEach(child =&gt; tree(child));</span><br><span class="line">        console.groupEnd();</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        console.log(`%c$&#123;node.name&#125;`, style);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将上述代码粘贴到控制台，然后输入 <code>tree()</code>, 就可以查看当前场景的节点树结构了。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/cc-console-utils-preview1.jpeg" alt="控制台查看节点树简版" title>
+                </div>
+                <div class="image-caption">控制台查看节点树简版</div>
+            </figure>
+<p>上面的功能还很简陋，经过扩展我们可以获得更多的功能</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/cc-console-utils-preview2.png" alt="控制台查看节点完整版" title>
+                </div>
+                <div class="image-caption">控制台查看节点完整版</div>
+            </figure>
+<p>每个节点后边会附带常见的几个属性和唯一id，通过 <code>cc.cat(id)</code> 即可获得这个节点的引用，提高调试效率。</p>
+<p>源码：</p>
+<p><a href="https://github.com/potato47/ccc-devtools/blob/master/libs/js/cc-console-utils.js" target="_blank" rel="noopener">https://github.com/potato47/ccc-devtools/blob/master/libs/js/cc-console-utils.js</a></p>
+<h2 id="适用于-Cocos-的-JSC-加解密工具"><a href="#适用于-Cocos-的-JSC-加解密工具" class="headerlink" title="适用于 Cocos 的 JSC 加解密工具"></a>适用于 Cocos 的 JSC 加解密工具</h2><p>Cocos Creator 在构建的时候支持对脚本进行加密和压缩。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-extensions/jsc-encryption-preview1.png" alt="Cocos Creator 脚本加密" title>
+                </div>
+                <div class="image-caption">Cocos Creator 脚本加密</div>
+            </figure>
+<p>然而，官方并没有提供一个解压和解密的工具。这给 jsc 的二次修改和重用带来了不便。</p>
+<p>本工具弥补了这个不足：提供了与 Cocos Creator 相同的加密、解密、压缩、解压的方法。可以很方便地对构建得到的 jsc 进行解密、解压得到 js ，也可以将 js 压缩、加密回 jsc 。</p>
+<p>源码：</p>
+<p><a href="https://github.com/OEDx/cocos-jsc-endecryptor" target="_blank" rel="noopener">https://github.com/OEDx/cocos-jsc-endecryptor</a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.cocos.com/creator/manual/zh/extension/" target="_blank" rel="noopener">Cocos Creator 扩展编辑器文档</a></li>
+<li><a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/custom-preview-template.html" target="_blank" rel="noopener">Cocos Creator 自定义网页预览文档</a></li>
+<li><a href="https://code.visualstudio.com/api/get-started/your-first-extension" target="_blank" rel="noopener">VS Code 插件开发文档</a></li>
+</ul>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos-Creator/">Cocos Creator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/插件/">插件</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2020/06/30/cocos-creator-extensions/&title=《人生苦短，我们为 Cocos Creator 开发的插件和工具》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2020/06/30/cocos-creator-extensions/&title=《人生苦短，我们为 Cocos Creator 开发的插件和工具》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2020/06/30/cocos-creator-extensions/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《人生苦短，我们为 Cocos Creator 开发的插件和工具》 — OEDx&url=http://oedx.github.io/2020/06/30/cocos-creator-extensions/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2020/06/30/cocos-creator-extensions/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2020/12/08/rhubarb-lip-sync-ccc/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">让你的角色学会说话——rhubarb-lip-sync-ccc</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/12/24/cocos-creator-api-compat/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Cocos Creator 最佳实践：JavaScript兼容性问题规避</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2020/06/30/cocos-creator-extensions/&title=《人生苦短，我们为 Cocos Creator 开发的插件和工具》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2020/06/30/cocos-creator-extensions/&title=《人生苦短，我们为 Cocos Creator 开发的插件和工具》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2020/06/30/cocos-creator-extensions/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《人生苦短，我们为 Cocos Creator 开发的插件和工具》 — OEDx&url=http://oedx.github.io/2020/06/30/cocos-creator-extensions/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2020/06/30/cocos-creator-extensions/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMYAAADGCAAAAACs8KCBAAACLklEQVR42u3aQW7DMAwF0d7/0u42QGF1PumkFTVaFYbt8HnBiqS+vvC6XtbrlfWdP5+6u+fuVx5eMmTI2JZxLRe5Z026u7J+P49NhgwZ5zDWQfC02EmjaVqXIUOGDPI6HmiafGXIkCGjz+gEsX6nDBkyZHSK2DTQWovt7bW4DBkyNmTwID7/91vmGzJkyNiKcYUrbajxFHk1lgwZMmYzeIJLA+oMAGpvkCFDxlRGp2QlDbj+N16nclQfy5Ah4wDGeuuWBkGOgsXDCRkyZIxmkDFheqjr2ZFD0HqTIUPGUEYqTttqaap94JiFDBkyhjJqxepTDbh0wPDAfFWGDBlbMTowUnz+UnaW7kctPBkyZIxj1BpktZFkLZmip2TIkHEYI03EfLOYjiKC9p8MGTIOY6TDRfIsT7W1KzJkyDiBwY9wpe02ki5rY4Pbw2EyZMgYx6j9ZHqcqzY8SNtzMmTImMeoHbaoDSNrMPQRZciQMZrBN3Npu5+EWyt0iwcvZMiQsTkj3bqlX4g/y8elt4ctZMiQcQCDrP6mkA81g+JWhgwZhzF4oOn4kw840yagDBkypjI6qZaPIXnRW6TKkCFjNIMvkkBJS65WMBcPW8iQIWMQgyTZWrLjyfqBhCtDhowDGDzx1X64s1kMSlkZMmTIwLmODxVISfzRhCtDhozRDB5uh/QH/zdkyJDxbxikiO031/hoM/4cMmTIGM3gpSN5RXpsIt3jtZqAMmTI2I/xDcwIVYNdvQcGAAAAAElFTkSuQmCC" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

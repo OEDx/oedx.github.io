@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Cocos Creator 支持ETC1 + Alpha 纹理压缩 | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos,纹理压缩">
+    <meta name="description" content="ABCmouse是使用Cocos Creator（后面统称CC）开发的App，图片内存占用巨大，在Android低内存机器上容易造成OOM，纹理压缩后的图片可以直接在GPU加载渲染，减少占用内存。而本文基于CC V1.10.x版本做相应的分析及其改造，使项目支持ETC1(Ericsson Texture Compression)+Alpha纹理压缩  背景ABCmouse项目中用到的图片资源随着">
+<meta name="keywords" content="Cocos,纹理压缩">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cocos Creator 支持ETC1 + Alpha 纹理压缩">
+<meta property="og:url" content="http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="ABCmouse是使用Cocos Creator（后面统称CC）开发的App，图片内存占用巨大，在Android低内存机器上容易造成OOM，纹理压缩后的图片可以直接在GPU加载渲染，减少占用内存。而本文基于CC V1.10.x版本做相应的分析及其改造，使项目支持ETC1(Ericsson Texture Compression)+Alpha纹理压缩  背景ABCmouse项目中用到的图片资源随着">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-support-etc1-alpha/etc_mipmap0_combined.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-support-etc1-alpha/etc_mipmap0_color.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-support-etc1-alpha/cc.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-support-etc1-alpha/flow.jpg">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-support-etc1-alpha/mask.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-support-etc1-alpha/png_memory.png">
+<meta property="og:image" content="http://oedx.github.io/images/cocos-creator-support-etc1-alpha/etc_memory.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cocos Creator 支持ETC1 + Alpha 纹理压缩">
+<meta name="twitter:description" content="ABCmouse是使用Cocos Creator（后面统称CC）开发的App，图片内存占用巨大，在Android低内存机器上容易造成OOM，纹理压缩后的图片可以直接在GPU加载渲染，减少占用内存。而本文基于CC V1.10.x版本做相应的分析及其改造，使项目支持ETC1(Ericsson Texture Compression)+Alpha纹理压缩  背景ABCmouse项目中用到的图片资源随着">
+<meta name="twitter:image" content="http://oedx.github.io/images/cocos-creator-support-etc1-alpha/etc_mipmap0_combined.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Cocos Creator 支持ETC1 + Alpha 纹理压缩</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Cocos Creator 支持ETC1 + Alpha 纹理压缩</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-05-15T14:40:54.000Z" itemprop="datePublished" class="page-time">
+  2019-05-15
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#背景"><span class="post-toc-number">1.</span> <span class="post-toc-text">背景</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#what、why、how-ETC纹理压缩"><span class="post-toc-number">2.</span> <span class="post-toc-text">what、why、how ETC纹理压缩</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#实现方案"><span class="post-toc-number">3.</span> <span class="post-toc-text">实现方案</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#开发过程遇到的问题"><span class="post-toc-number">4.</span> <span class="post-toc-text">开发过程遇到的问题</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#纹理压缩白名单"><span class="post-toc-number">5.</span> <span class="post-toc-text">纹理压缩白名单</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#优化后的内存效果"><span class="post-toc-number">6.</span> <span class="post-toc-text">优化后的内存效果</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#附加参考："><span class="post-toc-number">7.</span> <span class="post-toc-text">附加参考：</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-cocos-creator-support-etc1-alpha" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Cocos Creator 支持ETC1 + Alpha 纹理压缩</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-05-15 14:40:54" datetime="2019-05-15T14:40:54.000Z" itemprop="datePublished">2019-05-15</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p><a href="http://timorzheng.com">郑桂涛(timorzheng)</a></p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <blockquote>
+<p>ABCmouse是使用Cocos Creator（后面统称CC）开发的App，图片内存占用巨大，在Android低内存机器上容易造成OOM，纹理压缩后的图片可以直接在GPU加载渲染，减少占用内存。而本文基于CC V1.10.x版本做相应的分析及其改造，使项目支持ETC1(Ericsson Texture Compression)+Alpha纹理压缩</p>
+</blockquote>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>ABCmouse项目中用到的图片资源随着项目开发越来越多，手机Graphic内存占用越来越高，特别是在低端机器上容易Out Of Memory，而项目使用的CC版本是基于V1.10.x较低版本，官网已经升级到V2.0.9，版本差异大升级困难，故而需要在原版上进行支持纹理压缩。</p>
+<h2 id="what、why、how-ETC纹理压缩"><a href="#what、why、how-ETC纹理压缩" class="headerlink" title="what、why、how ETC纹理压缩"></a>what、why、how ETC纹理压缩</h2><p><strong>What</strong>：ETC是把4x4的像素块压缩成一个64或128位的数据块，是<strong>有损压缩</strong>，移动平台游戏比较常用的压缩方式之一（iOS设备中支持的是PVR压缩和ETC2，在Android中支持的是ETC压缩）。而ETC又分为ETC1和ETC2，ETC2是向下兼容ETC1，对RGB的压缩质量更好，并且支持透明通道，当然对软件硬件也是有一定的要求。而各种Android设备基本都支持ETC1，<strong>ETC1不支持透明通道</strong>。</p>
+<p>ETC1、ETC2对比如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">类型</th>
+<th style="text-align:center">是否支持Alpha</th>
+<th style="text-align:center">支持OpenGLES版本</th>
+<th style="text-align:center">Android版本支持</th>
+<th style="text-align:center">压缩率</th>
+<th style="text-align:center">压缩质量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">ETC1</td>
+<td style="text-align:center">No</td>
+<td style="text-align:center">OpenGLES 2.0+</td>
+<td style="text-align:center">Android 2.2 (API level 8) and higher</td>
+<td style="text-align:center">6:1</td>
+<td style="text-align:center">好</td>
+</tr>
+<tr>
+<td style="text-align:center">ETC2</td>
+<td style="text-align:center">Yes</td>
+<td style="text-align:center">OpenGLES 3.0+</td>
+<td style="text-align:center">Android 4.3 (API level 18) and higher</td>
+<td style="text-align:center">6:1</td>
+<td style="text-align:center">较好</td>
+</tr>
+</tbody>
+</table>
+<p>参考OpenGL ES 版本Android占比分布：<a href="https://developer.android.com/about/dashboards/index.html#Screenshttps://developer.android.com/guide/topics/graphics/opengl.html" target="_blank" rel="noopener">https://developer.android.com/about/dashboards/index.html#Screenshttps://developer.android.com/guide/topics/graphics/opengl.html</a></p>
+<p>硬件方面：虽说ETC2支持Android版本4.3+，但并非所有的4.3机器都支持ETC2，这取决于手机厂商定制的GPU型号是否支持。</p>
+<p><strong>Why</strong>：而使用纹理压缩有什么好处呢？纹理压缩后的图片，不经过CPU解码，直接使用GPU加载渲染，大大提高了加载速度。<br>为此，很多游戏App采用ETC1+Alpha来解决ETC1不支持透明通道的问题。</p>
+<p><strong>How</strong>：那么，如何生成ETC1+Alpha呢？首先移动端是无法直接在移动端生成etc，需要额外的制作工具。这里推荐使用Mali Texture Compression Tool，这个工具可以生成ETC1和带透明通道的ETC1，下载地址：<a href="https://developer.arm.com/tools-and-software/graphics-and-gaming/graphics-development-tools/mali-texture-compression-tool/downloads" target="_blank" rel="noopener">https://developer.arm.com/tools-and-software/graphics-and-gaming/graphics-development-tools/mali-texture-compression-tool/downloads</a></p>
+<h2 id="实现方案"><a href="#实现方案" class="headerlink" title="实现方案"></a>实现方案</h2><p>基于我们项目中，目前Android配置的minSdkVersion是19，那么是否可以考虑直接使用ETC2呢？抱着测试的心态，先使用上面介绍的Mali工具，使用以下命令直接将图片压缩为ETC2格式：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcpack srcfile outfile -c etc2 -f RGBA</span><br></pre></td></tr></table></figure></p>
+<p> 具体CC编译后的Android包如何加载ETC2可以参看文章：<a href="https://forum.cocos.com/t/cocos-etc2/49061" target="_blank" rel="noopener">https://forum.cocos.com/t/cocos-etc2/49061</a>  这里不再详述。<br>然而前面已经提到的有些低端机器不支持ETC2的加载，这导致了渲染黑屏。通过CC引擎检测是否支持ETC2 log我们可以看到，该手机硬件不支持，具体log如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">D/cocos2d-x: &#123;</span><br><span class="line">        gl.supports_OES_packed_depth_stencil: true</span><br><span class="line">        gl.supports_vertex_array_object: true</span><br><span class="line">        gl.supports_BGRA8888: false</span><br><span class="line">        cocos2d.x.version: Cocos2d-x-lite v1.8.2</span><br><span class="line">        gl.supports_discard_framebuffer: true</span><br><span class="line">        cocos2d.x.compiled_with_profiler: false</span><br><span class="line">        gl.supports_PVRTC: false</span><br><span class="line">        cocos2d.x.build_type: DEBUG</span><br><span class="line">        gl.renderer: Adreno (TM) 530</span><br><span class="line">        gl.supports_OES_depth24: true</span><br><span class="line">        gl.supports_ETC1: true</span><br><span class="line">        gl.supports_OES_map_buffer: false</span><br><span class="line">        cocos2d.x.compiled_with_gl_state_cache: true</span><br><span class="line">        gl.version: OpenGL ES 3.2 V@313.0 (GIT@984b9a6, Ibe1bf21abc) (Date:06/04/18)</span><br><span class="line">        gl.supports_NPOT: true</span><br><span class="line">        gl.supports_ETC2: false</span><br><span class="line">        gl.max_texture_units: 96</span><br><span class="line">        gl.vendor: Qualcomm</span><br><span class="line">        gl.max_texture_size: 16384</span><br><span class="line">    &#125;</span><br><span class="line">cocos2d-x: cocos2d: Hardware ETC2 decoder not support.</span><br></pre></td></tr></table></figure></p>
+<p>考虑到需要兼容部分低端机型，这里不得不放弃ETC2的使用，转而尝试使用ETC1+Alpha。同样的，使用Mali工具对图片进行纹理压缩命令如下：（使用命令生成出来的纹理上半部分是原始图片（无alpha信息），下半部分是alpha信息图片）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcpack srcfile outfile -c etc -aa</span><br></pre></td></tr></table></figure></p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-support-etc1-alpha/etc_mipmap0_combined.png" alt="原始图" title>
+                </div>
+                <div class="image-caption">原始图</div>
+            </figure>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-support-etc1-alpha/etc_mipmap0_color.png" alt="ETC1+Alpha纹理压缩后预览图" title>
+                </div>
+                <div class="image-caption">ETC1+Alpha纹理压缩后预览图</div>
+            </figure>
+<p>可以看到纹理压缩后的图片高度是原来图片高度的2倍，那么最关键的就是如何让其渲染成原始图片。答案是使用Shader对其进行渲染。<br>首先了解一下CCSprite、CCSpriteFrame、CCTexture2D之间的关系（图来自CC官网文档）：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-support-etc1-alpha/cc.png" alt="assets" title>
+                </div>
+                <div class="image-caption">assets</div>
+            </figure></p>
+<p>从图中可以看到，我们肉眼看到的是CCSprite渲染出来的图片，CCSpriteFrame为精灵的某一帧，CCTexture2D为图片纹理数据，也对应上从Cocos js加载图片到sprite中代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">properties: &#123;</span><br><span class="line">   sprite: cc.Sprite,</span><br><span class="line">&#125;</span><br><span class="line">...</span><br><span class="line">cc.loader.load(path, function (err, texture) &#123;</span><br><span class="line">    this.sprite.spriteFrame = new cc.SpriteFrame(texture);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p> 了解了以上概念后，纹理压缩后出来的文件就是对应的CCTexture2D，如何让其显示到CCSprite上就是我们要做的处理。<br>我们先看一下整体的实现流程图（从构建–&gt;纹理压缩–&gt;打包apk–&gt;图片渲染）：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-support-etc1-alpha/flow.jpg" alt="流程图" title>
+                </div>
+                <div class="image-caption">流程图</div>
+            </figure></p>
+<h2 id="开发过程遇到的问题"><a href="#开发过程遇到的问题" class="headerlink" title="开发过程遇到的问题"></a>开发过程遇到的问题</h2><p>如果直接使用CC v1.10.x版本的代码直接加载etc1+alpha文件，那么将出现各种问题：</p>
+<ul>
+<li>图片移位</li>
+<li>渲染黑块</li>
+<li>图片遮罩不生效</li>
+<li>自定义Shader不生效</li>
+<li>cocos js获取Texture的height变成实际显示高度的2倍</li>
+</ul>
+<p><strong>✔️ cc.loader.load动态加载的图片将出现移位</strong><br>解决的最关键一步是获取Texture2D的pixelFormat为ETC格式时需要update SpriteFrame的几个属性，具体实现需要修改c++层的CCSpriteFrame.cpp进行适配：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">void SpriteFrame::setTexture(Texture2D * texture)</span><br><span class="line">&#123;</span><br><span class="line">    if( _texture != texture ) &#123;</span><br><span class="line">        CC_SAFE_RELEASE(_texture);</span><br><span class="line">        CC_SAFE_RETAIN(texture);</span><br><span class="line">        if(texture-&gt;getPixelFormat() == Texture2D::PixelFormat::ETC)&#123;</span><br><span class="line">            int texHigh = texture-&gt;getPixelsHigh();</span><br><span class="line">            if(texHigh == _rect.size.height)&#123;</span><br><span class="line">                _rect.size.height *= 0.5;</span><br><span class="line">                _rectInPixels = CC_RECT_POINTS_TO_PIXELS(_rect);</span><br><span class="line">                Size size = CC_SIZE_POINTS_TO_PIXELS(texture-&gt;getContentSize());</span><br><span class="line">                size.height *= 0.5;</span><br><span class="line">                _originalSizeInPixels = size;</span><br><span class="line">                _originalSize = CC_SIZE_PIXELS_TO_POINTS( _originalSizeInPixels);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        _texture = texture;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p> 可以看到我们将_rect.size.height和contentSize.height减半并更新_rect、_rectInPixels、_originalSizeInPixels、_originalSiz属性</p>
+<p><strong>✔️ 渲染黑块</strong><br>解决渲染黑块，使用shader对etc纹理进行渲染，将遮罩部分作为Alpha值加到原图上<br>顶点着色器 ccShader_PositionTexture_Ect1Alpha.vert:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">const char* ccPositionTexture_Ect1Alpha_vert = STRINGIFY(</span><br><span class="line">attribute vec4 a_position;</span><br><span class="line">attribute vec2 a_texCoord;</span><br><span class="line">attribute vec4 a_color;</span><br><span class="line">varying vec4 v_fragmentColor;</span><br><span class="line">varying vec2 v_texCoord;</span><br><span class="line">varying vec2 v_alphaCoord;</span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    gl_Position = CC_PMatrix * a_position;</span><br><span class="line">    v_fragmentColor = a_color;</span><br><span class="line">    v_texCoord = a_texCoord;</span><br><span class="line">&#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p>
+<p>片段着色器 ccShader_PositionTexture_Ect1Alpha.frag:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">const char* ccPositionTexture_Ect1Alpha_frag = STRINGIFY(</span><br><span class="line"></span><br><span class="line">\n#ifdef GL_ES\n</span><br><span class="line">precision lowp float;</span><br><span class="line">\n#endif\n</span><br><span class="line">varying vec4 v_fragmentColor;</span><br><span class="line">varying vec2 v_texCoord;</span><br><span class="line">varying vec2 v_alphaCoord;</span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    vec4 v4Colour = texture2D(CC_Texture0, v_texCoord);</span><br><span class="line">    v4Colour.a = texture2D(CC_Texture0, vec2(0.0, 0.5) + v_texCoord).r;</span><br><span class="line">    //v4Colour.rgb *= v4Colour.a;//Premultiply with Alpha channel</span><br><span class="line">    gl_FragColor = v_fragmentColor * v4Colour;</span><br><span class="line">&#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p>
+<p> 具体的shader语法可参考：<a href="https://learnopengl-cn.github.io/01%20Getting%20started/04%20Hello%20Triangle/#_3" target="_blank" rel="noopener">https://learnopengl-cn.github.io/01%20Getting%20started/04%20Hello%20Triangle/#_3</a></p>
+<p><strong>✔️ 图片遮罩不生效</strong><br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-support-etc1-alpha/mask.png" alt="图片遮罩" title>
+                </div>
+                <div class="image-caption">图片遮罩</div>
+            </figure></p>
+<p>CC上预览是可以，但由于mask上设置的SpriteFrame经过纹理压缩后，在app上就展示不出mask效果。需要找到mask设置SpriteFrame对应的c++层逻辑，对应CCClippingNode.cpp如下方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">void ClippingNode::visit(Renderer *renderer, const Mat4 &amp;parentTransform, uint32_t parentFlags)</span><br><span class="line">&#123;</span><br><span class="line">    ……省略部分代码</span><br><span class="line"></span><br><span class="line">    auto alphaThreshold = this-&gt;getAlphaThreshold();</span><br><span class="line">    if (alphaThreshold &lt; 1)</span><br><span class="line">    &#123;</span><br><span class="line">#if CC_CLIPPING_NODE_OPENGLES</span><br><span class="line">        // since glAlphaTest do not exists in OES, use a shader that writes</span><br><span class="line">        // pixel only if greater than an alpha threshold</span><br><span class="line">        //</span><br><span class="line">        GLProgram *program = GLProgramCache::getInstance()-&gt;getGLProgram(GLProgram::SHADER_NAME_POSITION_TEXTURE_ALPHA_TEST_NO_MV);</span><br><span class="line">        if(_stencil != nullptr)&#123;</span><br><span class="line">            if (auto scale9sp = dynamic_cast&lt;creator::Scale9SpriteV2*&gt;(_stencil))&#123;</span><br><span class="line">                cocos2d::SpriteFrame* spriteFrame = scale9sp-&gt;getSpriteFrame();</span><br><span class="line">                if(spriteFrame &amp;&amp; spriteFrame-&gt;getTexture() &amp;&amp; spriteFrame-&gt;getTexture()-&gt;getPixelFormat() == Texture2D::PixelFormat::ETC)&#123;</span><br><span class="line">                    program = GLProgramCache::getInstance()-&gt;getGLProgram(GLProgram::SHADER_NAME_POSITION_TEXTURE_ETC_ALPHA_TEST_NO_MV);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        GLint alphaValueLocation = glGetUniformLocation(program-&gt;getProgram(), GLProgram::UNIFORM_NAME_ALPHA_TEST_VALUE);</span><br><span class="line">        // set our alphaThreshold</span><br><span class="line">        program-&gt;use();</span><br><span class="line">        program-&gt;setUniformLocationWith1f(alphaValueLocation, alphaThreshold);</span><br><span class="line">        // we need to recursively apply this shader to all the nodes in the stencil node</span><br><span class="line">        // FIXME: we should have a way to apply shader to all nodes without having to do this</span><br><span class="line">        setProgram(_stencil, program);</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ……省略部分代码</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>找到alphaThreshold小于1的地方，要应用GLProgram之前先判断PixelFormat格式如果是etc则重新设置shader，SHADER_NAME_POSITION_TEXTURE_ETC_ALPHA_TEST_NO_MV是我重新设置的shader，区别于SHADER_NAME_POSITION_TEXTURE_ALPHA_TEST_NO_MV只是关键的一行代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">const char* ccPositionEtcTextureColorAlphaTest_frag = STRINGIFY(</span><br><span class="line"></span><br><span class="line">\n#ifdef GL_ES\n</span><br><span class="line">precision lowp float;</span><br><span class="line">\n#endif\n</span><br><span class="line"></span><br><span class="line">varying vec4 v_fragmentColor;</span><br><span class="line">varying vec2 v_texCoord;</span><br><span class="line">uniform float CC_alpha_value;</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    vec4 texColor = texture2D(CC_Texture0, v_texCoord);</span><br><span class="line">    texColor.a = texture2D(CC_Texture0, vec2(0.0, 0.5) + v_texCoord).r;//关键的一行：设置Alpha层叠加到原图上</span><br><span class="line"></span><br><span class="line">\n// mimic: glAlphaFunc(GL_GREATER)</span><br><span class="line">\n// pass if ( incoming_pixel &gt;= CC_alpha_value ) =&gt; fail if incoming_pixel &lt; CC_alpha_value\n</span><br><span class="line"></span><br><span class="line">    if ( texColor.a &lt;= CC_alpha_value )</span><br><span class="line">        discard;</span><br><span class="line"></span><br><span class="line">    gl_FragColor = texColor * v_fragmentColor;</span><br><span class="line">&#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p>
+<p><strong>✔️ 自定义Shader不生效</strong><br> ABCmouse项目中的bookplayer使用了自定义Shader，加了纹理压缩后，发现翻书shader效果失效了，而翻书用的图片是网络图片(没有经过纹理压缩)，理论上跟etc纹理没关系。</p>
+<p>后面定位到是CCScale9Sprite.cpp下setSpriteFrame当spriteFrame为空时重新设置了默认shader（SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP）导致，而bookplayer刚好就是有设置sprite.spriteFrame = null;的情况，解决方法去掉设置默认shader即可<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">bool Scale9SpriteV2::setSpriteFrame(cocos2d::SpriteFrame* spriteFrame)</span><br><span class="line">&#123;</span><br><span class="line">    if(this-&gt;_spriteFrame == nullptr)&#123;</span><br><span class="line">        if (spriteFrame &amp;&amp; spriteFrame-&gt;getTexture()) &#123;</span><br><span class="line">            Texture2D::PixelFormat pixelFormat = spriteFrame-&gt;getTexture()-&gt;getPixelFormat();</span><br><span class="line">            if (pixelFormat == Texture2D::PixelFormat::ETC) &#123;</span><br><span class="line">                this-&gt;setGLProgramState(GLProgramState::getOrCreateWithGLProgramName(GLProgram::SHADER_NAME_POSITION_TEXTURE_ETC1ALPHA));</span><br><span class="line">            &#125; else&#123;//自己添加的下面这行导致shader被覆盖，去掉即可</span><br><span class="line">                this-&gt;setGLProgramState(GLProgramState::getOrCreateWithGLProgramName(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">   ......忽略其他代码</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>那么还可以思考的是，要是etc纹理做自定义shader应该如何处理呢？项目中暂时没有这种暂时没支持，编码思路是判断是否有自定义纹理，有则使用自定义，没有则用etc shader</p>
+<p><strong>✔️ 经过ETC纹理压缩后，cocos js获取Texture的height变成实际显示高度的2倍</strong><br>解决方法是在cc.Texture2D新增获取真正height的方法，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cc.Texture2D.prototype.getWrapPixelHeight = function()&#123;//Android本地图片使用etc+alpha纹理压缩，height、getPixelHeight()、pixelHeight是显示height的两倍，请使用这个wrap方法获取修复</span><br><span class="line">        if(this.getPixelFormat() == 14)&#123;//etc+alpha 高度减半处理</span><br><span class="line">            return this.height * 0.5;</span><br><span class="line">        &#125;</span><br><span class="line">        return this.height;</span><br><span class="line">    &#125;;</span><br></pre></td></tr></table></figure></p>
+<h2 id="纹理压缩白名单"><a href="#纹理压缩白名单" class="headerlink" title="纹理压缩白名单"></a>纹理压缩白名单</h2><p>由于etc是有损压缩，对于一些设计师图片有质量要求（特别是alpha透明度有要求）的需要添加到白名单里，不进行压缩。</p>
+<p>目前白名单主要有：AutoAtlas和骨骼动画、压缩后alpha有问题的图片</p>
+<h2 id="优化后的内存效果"><a href="#优化后的内存效果" class="headerlink" title="优化后的内存效果"></a>优化后的内存效果</h2><blockquote>
+<p>Graphics：图形缓冲区队列向屏幕显示像素（包括 GL surfaces, GL textures等等）所使用的内存</p>
+</blockquote>
+<p>使用Memory Profiler分析内存占用情况，在同一场景gc后稳定内存，然后分别加载png图片和etc图片，对比内存如下：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-support-etc1-alpha/png_memory.png" alt="png内存占用" title>
+                </div>
+                <div class="image-caption">png内存占用</div>
+            </figure><br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/cocos-creator-support-etc1-alpha/etc_memory.png" alt="etc内存占用" title>
+                </div>
+                <div class="image-caption">etc内存占用</div>
+            </figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">类型</th>
+<th style="text-align:center">加载图片前</th>
+<th style="text-align:center">加载图片后</th>
+<th style="text-align:center">占用内存</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">png</td>
+<td style="text-align:center">176.3M</td>
+<td style="text-align:center">182M</td>
+<td style="text-align:center">5.7M</td>
+</tr>
+<tr>
+<td style="text-align:center">etc</td>
+<td style="text-align:center">195.5M</td>
+<td style="text-align:center">197.3M</td>
+<td style="text-align:center">1.8M</td>
+</tr>
+</tbody>
+</table>
+<h2 id="附加参考："><a href="#附加参考：" class="headerlink" title="附加参考："></a>附加参考：</h2><blockquote>
+<p>CC论坛：cocos实现对ETC2的支持：<a href="https://forum.cocos.com/t/cocos-etc2/49061" target="_blank" rel="noopener">https://forum.cocos.com/t/cocos-etc2/49061</a><br>CC论坛：Creator使用压缩纹理：<a href="https://forum.cocos.com/t/creator/47206" target="_blank" rel="noopener">https://forum.cocos.com/t/creator/47206</a><br>cocos2d中添加自己的shader教程：<a href="http://www.cocoachina.com/bbs/read.php?tid=220630" target="_blank" rel="noopener">http://www.cocoachina.com/bbs/read.php?tid=220630</a><br>OpenGL着色器语言(GLSL)：<a href="https://learnopengl-cn.github.io/01%20Getting%20started/05%20Shaders/" target="_blank" rel="noopener">https://learnopengl-cn.github.io/01%20Getting%20started/05%20Shaders/</a><br>关于cocos2d-x对etc1图片支持的分析：<a href="https://blog.csdn.net/langresser_king/article/details/9339313" target="_blank" rel="noopener">https://blog.csdn.net/langresser_king/article/details/9339313</a><br>Mali-Texture-Compression工具：<a href="https://developer.arm.com/tools-and-software/graphics-and-gaming/graphics-development-tools/mali-texture-compression-tool/downloads" target="_blank" rel="noopener">https://developer.arm.com/tools-and-software/graphics-and-gaming/graphics-development-tools/mali-texture-compression-tool/downloads</a></p>
+</blockquote>
+<p>以上如有错误疏漏，烦请指正</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/纹理压缩/">纹理压缩</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/&title=《Cocos Creator 支持ETC1 + Alpha 纹理压缩》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/&title=《Cocos Creator 支持ETC1 + Alpha 纹理压缩》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Cocos Creator 支持ETC1 + Alpha 纹理压缩》 — OEDx&url=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/05/29/frontend-packing-tips/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">前端构建秘籍</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">CocosCreator 引擎资源加载与释放原理简析</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/&title=《Cocos Creator 支持ETC1 + Alpha 纹理压缩》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/&title=《Cocos Creator 支持ETC1 + Alpha 纹理压缩》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Cocos Creator 支持ETC1 + Alpha 纹理压缩》 — OEDx&url=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/05/15/cocos-creator-support-etc1-alpha/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACr0lEQVR42u3aSW7kQAwEwP7/p2eug4GtzmQVvQChk9GLxJABsTpZr1d8/PnnSF55fj35VvLutQMPDw/voPSkiPzCn5WbvPL8yaRmPDw8vG3ec3HDUweNIb/Rn9XzxoKHh4f3A3htU2nbT76gx8PDw/stvFnpbXrQ1oCHh4f39bz2kZ28kkcMefCxmLXg4eHh3XxW1w/r7b9X5nt4eHh4x1P1Nng9ucfnwccH1eLh4eEt8PKCbm26eh6nJRsF2jrx8PDw9nj5D/5bEUa+NSG/xR9cFw8PD2+Bl4St23FGsu3geXldxxN4eHh4V3mzQdd5EbNPFlfBw8PDO+a1S952c8Bs0Xwr9sXDw8Pb5p2MuGaRxGy0VgQieHh4eAu8k7H9bLh1vrkqX9Dj4eHhbfD2MPl4rI0/ijaDh4eHt8ybXaYFtF0rj3TrjoeHh4d3wMsf5cmwKo8qns+QnP/N33h4eHhrvPbL+YDqZMDWDtsuzPfw8PDwYl6yUJ5tgcrP2YYUUbSBh4eHt8C7VWK7XaDdcJAs3N8g8fDw8C7xZqFA0jDO313JWvDw8PCOefnP+3zcNYsn2mV3PSrDw8PDW+DlC988kE0W1snV8+/i4eHhfQ2v3W4127w1ayfnV8fDw8Pb4N1tCXdv07UxGB4eHt7CBoKTsvLRVLtQnv0DLvc9PDw8vDKiTU6Rbzhoi05u+ps68fDw8NZ47XaB2fI3j3RnUcWbrAUPDw/vmDdrCUlsOkxEyjbwps3g4eHhLfDyI2fn7eFuZHx04OHh4ZW8thnMQoT2DG20MYxx8fDw8A547ciqfRq/vuvAw8PD+yW8pPG0Zx6Gwnh4eHg/gJcvx/OFbzuEKxoPHh4e3hqvDQLybQQt+7zx4OHh4W3zTn7R54/1k4d7sl1gJbDAw8PD+//4C5EZNcqJKIOeAAAAAElFTkSuQmCC" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

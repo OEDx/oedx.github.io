@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>小程序自动化测试实践 | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="小程序,自动化">
+    <meta name="description" content="一、缘起-为什么要进行小程序自动化测试微信小程序生态日益完善，很多小程序项目页面越来越多，结构越来越复杂，业务逻辑也更加多样。以腾讯课堂小程序为例，目前腾讯课堂小程序部分页面结构和不同业务场景下的表现如下图所示：">
+<meta name="keywords" content="小程序,自动化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="小程序自动化测试实践">
+<meta property="og:url" content="http://oedx.github.io/2019/08/07/mini-program-auto-test/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="一、缘起-为什么要进行小程序自动化测试微信小程序生态日益完善，很多小程序项目页面越来越多，结构越来越复杂，业务逻辑也更加多样。以腾讯课堂小程序为例，目前腾讯课堂小程序部分页面结构和不同业务场景下的表现如下图所示：">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/腾讯课堂业务.png">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/1561688637769.png">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/企业微信截图_15616886023578.png">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/免费课详.jpg">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/付费课详.jpg">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/优惠券.jpg">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/限时优惠.jpg">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/企业微信截图_15617087319540.png">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/企业微信截图_15617118027035.png">
+<meta property="og:image" content="http://oedx.github.io/images/mini-program-auto-test/企业微信截图_15617135006069.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="小程序自动化测试实践">
+<meta name="twitter:description" content="一、缘起-为什么要进行小程序自动化测试微信小程序生态日益完善，很多小程序项目页面越来越多，结构越来越复杂，业务逻辑也更加多样。以腾讯课堂小程序为例，目前腾讯课堂小程序部分页面结构和不同业务场景下的表现如下图所示：">
+<meta name="twitter:image" content="http://oedx.github.io/images/mini-program-auto-test/腾讯课堂业务.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">小程序自动化测试实践</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">小程序自动化测试实践</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-08-07T15:40:29.000Z" itemprop="datePublished" class="page-time">
+  2019-08-07
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/测试/">测试</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#一、缘起-为什么要进行小程序自动化测试"><span class="post-toc-number">1.</span> <span class="post-toc-text">一、缘起-为什么要进行小程序自动化测试</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#二、缘遇-初试miniprogram-automator"><span class="post-toc-number">2.</span> <span class="post-toc-text">二、缘遇-初试miniprogram-automator</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#三、缘聚-自动化测试在课堂微信小程序中的应用"><span class="post-toc-number">3.</span> <span class="post-toc-text">三、缘聚-自动化测试在课堂微信小程序中的应用</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#四、缘续-遇到的问题与功能限制"><span class="post-toc-number">4.</span> <span class="post-toc-text">四、缘续-遇到的问题与功能限制</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-mini-program-auto-test" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">小程序自动化测试实践</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-08-07 15:40:29" datetime="2019-08-07T15:40:29.000Z" itemprop="datePublished">2019-08-07</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/测试/">测试</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p>崔邹森(billcui)</p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h2 id="一、缘起-为什么要进行小程序自动化测试"><a href="#一、缘起-为什么要进行小程序自动化测试" class="headerlink" title="一、缘起-为什么要进行小程序自动化测试"></a>一、缘起-为什么要进行小程序自动化测试</h2><p>微信小程序生态日益完善，很多小程序项目页面越来越多，结构越来越复杂，业务逻辑也更加多样。以腾讯课堂小程序为例，目前腾讯课堂小程序部分页面结构和不同业务场景下的表现如下图所示：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/mini-program-auto-test/腾讯课堂业务.png" alt="腾讯课堂业务" title>
+                </div>
+                <div class="image-caption">腾讯课堂业务</div>
+            </figure>
+<p>可以看到在核心功能上主要页面对于不同业务场景有众多不同的表现，因此在开发与发布的过程中需要手动验证大量测试用例以保证小程序按预期表现运行，善于利用工具的程序员当然会想：</p>
+<p>这种重复的工作能不能交给程序自动进行呢？</p>
+<p>web开发中对于这类测试问题已经有了很多自动化解决方案比如Selenium、Puppeteer，思路大体相同，都是让浏览器按照指定顺序自动在页面上完成点击、输入等操作，再将操作后的页面表现与想要得到的结果进行比较得到测试结论（断言）。那小程序中有没有一种方案能够按照这种思路实现自动化操作并提供页面信息用于断言呢？为了微信底层安全考虑，小程序环境一直比较封闭，留给开发者操作的余地很小，自动化操作基本无法实现，但5月出现了这样<a href="https://www.npmjs.com/package/miniprogram-automator" target="_blank" rel="noopener">一个npm包</a>，介绍了miniprogram-automator工具，给了小程序开发者希望。</p>
+<h2 id="二、缘遇-初试miniprogram-automator"><a href="#二、缘遇-初试miniprogram-automator" class="headerlink" title="二、缘遇-初试miniprogram-automator"></a>二、缘遇-初试miniprogram-automator</h2><p>基于miniprogram-automator的文档描述简单总结一下，当通过命令打开开发版微信开发者工具的自动化接口并连接自动化接口后，此工具可提供以下能力：</p>
+<ul>
+<li><strong>MiniProgram</strong>：获取小程序信息（页面堆栈、系统信息、页面内容），控制小程序（跳转页面、切换tab、调用方法）</li>
+<li><strong>Page</strong>：获取页面信息（路径、元素、数据、结构），控制页面（设置渲染数据、调用方法）</li>
+<li><strong>Element</strong>：获取元素信息（属性、样式、内容、位置），操控元素（点击、长按、调用方法）</li>
+</ul>
+<p>所以小程序自动化控制的实现依赖于开发版小程序开发者工具以及miniprogram-automator工具。小程序开发者工具命令行用来打开指定自动化操作服务端口。（开发者工具版本需高于v1.02.1906042）。miniprogram-automator工具用来操作开发者工具中运行的小程序并获取所需的信息。对于测试需求可以结合jest框架进行测试用例的组织和断言。 </p>
+<p>不多废话，看完文档用一下：</p>
+<p><strong>Ø  调用开发者工具命令行打开项目与指定自动化操作服务端口</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PS D:\内测\微信web开发者工具&gt; ./cli.bat --auto D:\weApp\testMiniprogram --auto-port 9420</span><br><span class="line">Initializing...</span><br><span class="line">idePortFile: C:\Users\billcui\AppData\Local\微信开发者工具\User Data\Default\.ide</span><br><span class="line">starting ide...</span><br><span class="line">IDE server has started, listening on http://127.0.0.1:35510</span><br><span class="line">initialization finished</span><br><span class="line">Open project with automation enabled success D:\weApp\testMiniprogram</span><br></pre></td></tr></table></figure>
+<p><strong>这一行命令需要注意的有</strong>：</p>
+<ol>
+<li>文档要求开发者工具版本号必须高于v1.02.1906042，最好是最新的内测版工具，我是在v1.03.1906062运行成功的；</li>
+<li>运行这行命令之前需要先打开开发者工具菜单中的<strong>设置-&gt;安全设置-&gt;服务端口</strong>；</li>
+<li>自动化端口是独立于服务端口的(比如终端打印出的35510其实是服务端口)，必须要看到<code>Open project with automation enabled success D:\weApp\testMiniprogram</code>这行提示才算是成功打开了自动化端口(9420)。</li>
+</ol>
+<p>命令运行成功后，开发者工具会自动打开项目，并弹出提示</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/mini-program-auto-test/1561688637769.png" alt="1561688637769" title>
+                </div>
+                <div class="image-caption">1561688637769</div>
+            </figure>
+<p><strong>Ø  创建test.js，代码中引入miniprogram-automator工具，连接自动化操作端口</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> automator = <span class="built_in">require</span>(<span class="string">'miniprogram-automator'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> miniProgram = automator.connect(&#123;</span><br><span class="line">  wsEndpoint: <span class="string">'ws://localhost:9420'</span>,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><strong>Ø  利用miniprogram-automator提供的接口操作小程序从首页重启并进行相关操作</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> automator = <span class="built_in">require</span>(<span class="string">'miniprogram-automator'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> miniProgram = automator.connect(&#123;</span><br><span class="line">  wsEndpoint: <span class="string">'ws://localhost:9420'</span>,</span><br><span class="line">&#125;).then(<span class="keyword">async</span> miniProgram =&gt; &#123;</span><br><span class="line">  <span class="comment">// 从首页重启</span></span><br><span class="line">  <span class="keyword">const</span> page = <span class="keyword">await</span> miniProgram.reLaunch(<span class="string">'/pages/index/index'</span>);</span><br><span class="line">  <span class="comment">// 从页面获取my-button组件</span></span><br><span class="line">  <span class="keyword">const</span> button = <span class="keyword">await</span> page.$(<span class="string">'my-button'</span>);</span><br><span class="line">  <span class="comment">// 打印出my-button的wxml信息</span></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">await</span> button.wxml());</span><br><span class="line">&#125;).catch(<span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'catch a error'</span>, e);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><strong>Ø  利用miniprogram-automator获取操作后页面相关信息，利用jest进行组织和断言</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// index.spec.js</span></span><br><span class="line"><span class="keyword">const</span> automator = <span class="built_in">require</span>(<span class="string">'miniprogram-automator'</span>);</span><br><span class="line"></span><br><span class="line">describe(<span class="string">'课堂小程序自动化测试'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">let</span> miniProgram;</span><br><span class="line">  <span class="comment">// 运行测试前调用</span></span><br><span class="line">  beforeAll(<span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">    miniProgram = <span class="keyword">await</span> automator.connect(&#123;</span><br><span class="line">      wsEndpoint: <span class="string">'ws://localhost:9420'</span>,</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">// 运行测试后调用</span></span><br><span class="line">  afterAll(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    miniProgram.disconnect();</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">// 测试内容</span></span><br><span class="line">  it(<span class="string">'nohost检测'</span>, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> page = <span class="keyword">await</span> miniProgram.reLaunch(<span class="string">'/pages/index/index'</span>);</span><br><span class="line">    <span class="keyword">const</span> nohost = <span class="keyword">await</span> page.$(<span class="string">'nohost'</span>);</span><br><span class="line">    expect(nohost).toBeNull();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>运行<code>jest index.spec.js</code>， 如果页面中不存在nohost组件则测试通过，结果如图所示：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/mini-program-auto-test/企业微信截图_15616886023578.png" alt="img" title>
+                </div>
+                <div class="image-caption">img</div>
+            </figure>
+<h2 id="三、缘聚-自动化测试在课堂微信小程序中的应用"><a href="#三、缘聚-自动化测试在课堂微信小程序中的应用" class="headerlink" title="三、缘聚-自动化测试在课堂微信小程序中的应用"></a>三、缘聚-自动化测试在课堂微信小程序中的应用</h2><p>腾讯课堂微信小程序引入自动化测试主要是为了解决开发、预发布环境、正式环境需要反复多次打开用例课程页面，操作繁琐，耗费大量人力的问题。针对课堂小程序checklist，尽可能利用自动化测试程序完成测试验证，减少手动操作，也可以避免人为检测的遗漏。</p>
+<p>利用miniprogram-automator工具和jest框架，自动化测试主要能力为按照指定顺序模拟<strong>打开指定页面、点击、滚动</strong>等操作和设置page的data渲染数据，然后对特定的<strong>页面结构、数据、组件属性</strong>等信息进行断言，判断是否符合预期。</p>
+<p>下面以腾讯课堂微信小程序的课程详情页为例来详细说明在实际项目中如何实现自动化测试：</p>
+<p>课程详情页的UI主要分为视频部分，详情部分以及底部的购买按钮，未购买课程时表现主要有以下几种：</p>
+<p>免费课程详情页、付费课程详情页</p>
+<p><img src="/images/mini-program-auto-test/免费课详.jpg" width="50%" height="50%"><img src="/images/mini-program-auto-test/付费课详.jpg" width="50%" height="50%"></p>
+<p>优惠券课程详情页、限时优惠课程详情页</p>
+<p><img src="/images/mini-program-auto-test/优惠券.jpg" width="50%" height="50%"><img src="/images/mini-program-auto-test/限时优惠.jpg" width="50%" height="50%"></p>
+<p>假如对于 <strong>未购买的无优惠活动的付费课程详情页</strong> 的测试目标如下：</p>
+<ol>
+<li>按钮应显示“立即购买”，点击购买按钮可跳转到支付页</li>
+<li>点击试学按钮可正常播放试学视频</li>
+<li>未购买课程时点击课程视频无法播放</li>
+</ol>
+<p>实现这个测试，在<code>x.spec.js</code>文件中首先需要要按照上文的步骤引入miniprogram-automator，在beforeAll中连接已经打开自动化端口的微信小程序项目。（这里不再重复代码，见上一章）下面直接看测试内容的代码。</p>
+<ol>
+<li><p><strong>按钮显示和点击跳转支付页测试</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 打开页面，通过url传参</span></span><br><span class="line"><span class="keyword">const</span> page = <span class="keyword">await</span> miniProgram.reLaunch(<span class="string">`/pages/course/course?cid=<span class="subst">$&#123;commonPayCid&#125;</span>`</span>);</span><br><span class="line"><span class="comment">// 获取按钮组件信息</span></span><br><span class="line"><span class="keyword">const</span> basicApplyButton = <span class="keyword">await</span> page.$(<span class="string">'.basic--buy'</span>);</span><br><span class="line"><span class="comment">// 判断按钮显示内容</span></span><br><span class="line">expect(<span class="keyword">await</span> basicApplyButton.wxml()).toContain(<span class="string">'立即购买'</span>); </span><br><span class="line"><span class="comment">// 模拟点击按钮</span></span><br><span class="line"><span class="keyword">await</span> basicApplyButton.tap();</span><br><span class="line"><span class="comment">// 等待页面跳转</span></span><br><span class="line"><span class="keyword">await</span> page.waitFor(<span class="number">1500</span>);</span><br><span class="line"><span class="comment">// 获取当前页面路径</span></span><br><span class="line"><span class="keyword">const</span> currentPage = <span class="keyword">await</span> miniProgram.currentPage();</span><br><span class="line"><span class="comment">// 判断跳转后路径是否正确</span></span><br><span class="line">expect(currentPage.path).toContain(<span class="string">'pages/order/order'</span>);</span><br><span class="line"><span class="comment">// 跳转回来</span></span><br><span class="line"><span class="keyword">await</span> miniProgram.navigateBack();</span><br></pre></td></tr></table></figure>
+<p>目前miniprogram-automator提供了两种方法获取到页面中的组件：<code>page.$</code> 和 <code>page.$$</code> 。经过实验发现两者的selector支持通过组件名和类名选择组件，但对于自定义组件内部的结构，就不能直接这样拿到了。</p>
+<p>课程详情页的底部按钮其实是一个自定义组件，并且还嵌套了子自定义组件，我们看一下底部按钮的wxml结构:</p>
+<p><img src="/images/mini-program-auto-test/企业微信截图_15617087319540.png" alt="企业微信截图_15617087319540"></p>
+<p>红色框框就是想要获取的目标，尝试一下直接通过 <code>page.$(&#39;.bottom-btn&#39;)</code> 或 <code>page.$(&#39;.buy&#39;)</code> 返回的都是undefined，那怎么获取呢？我们先来看看botton-button内部是什么样子的。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> basicApplyButton = <span class="keyword">await</span> page.$(<span class="string">'bottom-button'</span>);</span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">await</span> basicApplyButton.wxml());</span><br></pre></td></tr></table></figure>
+<p>获取bottom-button并打印它的wxml字符串看一下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">"<span class="tag">&lt;<span class="name">view</span> <span class="attr">class</span>=<span class="string">"bottom-button--bottom-button-space"</span> <span class="attr">wx:nodeid</span>=<span class="string">"17"</span>&gt;</span><span class="tag">&lt;<span class="name">view</span> <span class="attr">class</span>=<span class="string">"bottom-button--bottom-button-wrapper"</span> <span class="attr">wx:nodeid</span>=<span class="string">"261"</span>&gt;</span><span class="tag">&lt;<span class="name">basic</span> <span class="attr">is</span>=<span class="string">"components/discount-button/components/basic/basic"</span> <span class="attr">wx:nodeid</span>=<span class="string">"262"</span>&gt;</span><span class="tag">&lt;<span class="name">view</span> <span class="attr">wx:nodeid</span>=<span class="string">"263"</span>&gt;</span><span class="tag">&lt;<span class="name">view</span> <span class="attr">class</span>=<span class="string">"basic--bottom-button-container"</span> <span class="attr">wx:nodeid</span>=<span class="string">"264"</span>&gt;</span><span class="tag">&lt;<span class="name">view</span> <span class="attr">class</span>=<span class="string">"basic--bottom-btn basic--buy"</span> <span class="attr">wx:nodeid</span>=<span class="string">"265"</span>&gt;</span>      立即购买    <span class="tag">&lt;/<span class="name">view</span>&gt;</span><span class="tag">&lt;/<span class="name">view</span>&gt;</span><span class="tag">&lt;/<span class="name">view</span>&gt;</span><span class="tag">&lt;/<span class="name">basic</span>&gt;</span><span class="tag">&lt;/<span class="name">view</span>&gt;</span><span class="tag">&lt;/<span class="name">view</span>&gt;</span>"</span><br></pre></td></tr></table></figure>
+<p>发现了什么！小程序实际运行时，自定义组件内部的类名都加上了组件名前缀，再试试 <code>page.$(&#39;.basic--buy&#39;)</code> 发现果然成功获取到了，所以虽然表面上miniprogram-automator只能操作和获取page中的内容，但自定义组件内部的结构实际上也是以某种方式存在于page中的。</p>
+<p>接下来看一下跳转，可以直接获取到对应组件后调用<code>.tap()</code>方法来模拟点击，这里需要注意的是，由于微信小程序开发者工具中点击打开新页面耗时较长，需要等待页面加载一会，不然接下来获取当前页面路径的时候页面还没跳转过去就拿不到不到新页面路径了。等待的时长可以根据经验给个稍大的比较安全的值。</p>
+</li>
+<li><p><strong>点击试学按钮可正常播放试学视频</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> player_video = <span class="keyword">await</span> tapTcplayer(page, <span class="string">'.player-task'</span>);</span><br><span class="line">expect(<span class="keyword">await</span> player_video.wxml()).toContain(<span class="string">'video-current-time'</span>); <span class="comment">// 试学</span></span><br></pre></td></tr></table></figure>
+<p>由于微信开发者工具的限制，云点播会降级为tcplayer播放，tcplayer内部的核心组件其实是 <code>&lt;video&gt;</code> 组件，wxml结构如下：</p>
+<p><img src="/images/mini-program-auto-test/企业微信截图_15617118027035.png" alt="img"></p>
+<p>如何判断视频是否成功播放呢？</p>
+<p>我们先按照上面的方法获取播放成功的video组件的wxml字符串看看</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">"<span class="tag">&lt;<span class="name">video</span> <span class="attr">class</span>=<span class="string">"component-video-video--player_video"</span> <span class="attr">controls</span>=<span class="string">""</span> <span class="attr">danmu-list</span>=<span class="string">"[]"</span> <span class="attr">initial-time</span>=<span class="string">"0"</span> <span class="attr">object-fit</span>=<span class="string">"contain"</span> <span class="attr">poster</span>=<span class="string">"https://10.url.cn/qqc..."</span> <span class="attr">src</span>=<span class="string">"http://113.96.98.148/vedu.tc.qq.com/AtmkzyWCuq..."</span> <span class="attr">autoplay</span>=<span class="string">""</span> <span class="attr">wx:nodeid</span>=<span class="string">"446"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"video-container"</span> <span class="attr">wx:nodeid</span>=<span class="string">"447"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"video-bar full"</span> <span class="attr">style</span>=<span class="string">"opacity: 1;"</span> <span class="attr">wx:nodeid</span>=<span class="string">"457"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"video-controls"</span> <span class="attr">wx:nodeid</span>=<span class="string">"458"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"video-control-button pause"</span> <span class="attr">wx:nodeid</span>=<span class="string">"459"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">parse-text-content</span>=<span class="string">""</span> <span class="attr">class</span>=<span class="string">"video-current-time"</span> <span class="attr">wx:nodeid</span>=<span class="string">"460"</span>&gt;</span>00:02<span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"video-progress-container"</span> <span class="attr">wx:nodeid</span>=<span class="string">"462"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"video-progress"</span> <span class="attr">wx:nodeid</span>=<span class="string">"463"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">"left: -21px;"</span> <span class="attr">class</span>=<span class="string">"video-ball"</span> <span class="attr">wx:nodeid</span>=<span class="string">"464"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"video-inner"</span> <span class="attr">wx:nodeid</span>=<span class="string">"465"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">parse-text-content</span>=<span class="string">""</span> <span class="attr">class</span>=<span class="string">"video-duration"</span> <span class="attr">wx:nodeid</span>=<span class="string">"466"</span>&gt;</span>06:09<span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"video-fullscreen"</span> <span class="attr">wx:nodeid</span>=<span class="string">"468"</span>&gt;</span><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">"z-index: -9999"</span> <span class="attr">class</span>=<span class="string">"video-danmu"</span> <span class="attr">wx:nodeid</span>=<span class="string">"453"</span>&gt;</span><span class="tag">&lt;/<span class="name">video</span>&gt;</span>"</span><br></pre></td></tr></table></figure>
+<p>惊了！原生 <code>&lt;video&gt;</code> 组件内部竟然是 <code>&lt;div&gt;</code> ，我们还可以注意到一个关键的class: video-current-time 内部数值为00:02，这不是当前播放进度吗？刚好可以用来判断视频有没有播放成功，就是它了！</p>
+<p>对比发现播放失败时根本不会出现class为video-current-time的div，所以直接用是否包含video-current-time来判断了。</p>
+</li>
+<li><p><strong>未购买课程时点击课程视频无法播放</strong></p>
+<p>点击非试看课程时，无法播放视频。由于不播放视频时页面中只显示cover封面图，不attatch<code>&lt;video&gt;</code>组件，所以直接用获取视频组件的结果进行 <code>toBeNull()</code> 判断即可。结合上面所有的代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">tapTcplayer</span>(<span class="params">page, className = <span class="string">'.task-item'</span></span>) </span>&#123;</span><br><span class="line">     <span class="keyword">const</span> taskItem = <span class="keyword">await</span> page.$(className);</span><br><span class="line">     <span class="keyword">await</span> taskItem.tap();</span><br><span class="line">     <span class="keyword">await</span> page.waitFor(<span class="number">3000</span>);</span><br><span class="line">     <span class="keyword">const</span> playercover = <span class="keyword">await</span> page.$(<span class="string">'.player-cover'</span>);</span><br><span class="line">     <span class="keyword">const</span> player_video = <span class="keyword">await</span> playercover.$(<span class="string">'.component-video-video--player_video'</span>);</span><br><span class="line">     <span class="keyword">return</span> player_video;</span><br><span class="line">   &#125;</span><br><span class="line">   it(<span class="string">'付费课程详情页按钮显示、跳转、点播、试学功能测试'</span>, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">       <span class="keyword">const</span> page = <span class="keyword">await</span> miniProgram.reLaunch(<span class="string">`/pages/course/course?cid=<span class="subst">$&#123;commonPayCid&#125;</span>`</span>);</span><br><span class="line">       <span class="keyword">const</span> basicApplyButton = <span class="keyword">await</span> page.$(<span class="string">'.basic--buy'</span>);</span><br><span class="line">       expect(<span class="keyword">await</span> basicApplyButton.wxml()).toContain(<span class="string">'立即购买'</span>); <span class="comment">// 按钮显示</span></span><br><span class="line">       <span class="keyword">await</span> basicApplyButton.tap();</span><br><span class="line">       <span class="keyword">await</span> page.waitFor(<span class="number">1500</span>);</span><br><span class="line">       <span class="keyword">const</span> currentPage = <span class="keyword">await</span> miniProgram.currentPage();</span><br><span class="line">       expect(currentPage.path).toContain(<span class="string">'pages/order/order'</span>);</span><br><span class="line">       <span class="keyword">await</span> miniProgram.navigateBack();</span><br><span class="line">       <span class="keyword">const</span> player_video = <span class="keyword">await</span> tapTcplayer(page);</span><br><span class="line">       expect(player_video).toBeNull(); <span class="comment">// 未报名不能播放视频</span></span><br><span class="line">       <span class="keyword">const</span> player_video_new = <span class="keyword">await</span> tapTcplayer(page, <span class="string">'.player-task'</span>);</span><br><span class="line">       expect(<span class="keyword">await</span> player_video_new.wxml()).toContain(<span class="string">'current'</span>); <span class="comment">// 试学</span></span><br><span class="line">     &#125;, <span class="number">20000</span>);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>可以看到实际上先测试了播放课程功能，再测试了试学功能，这是为什么呢？</p>
+<p>这是一个坑：由于播放课程失败时会有showModel弹窗提示，这个弹窗是不在wxml结构中的，无法用自动化控制工具点击关闭，实际测试中这个弹窗会阻塞下一个测试项的第一步：页面跳转，导致下一个测试项直接打不开页面导致失败，只能等待一段时间再跳转，所以直接把弹窗放在测试试学功能之前，就不会影响下一个测试项了。</p>
+<p>还有一个需要注意的地方，在项目中，点击播放后5秒不触发进度刷新的方法就会上报视频播放失败，实际测试发现一般3秒即可正常播放，所以只等待3秒，3秒后未成功播放的视为播放失败。</p>
+<p>最后，jest默认一个测试项的时长不能大于5秒，这项测试既有页面跳转又有视频播放，明显会超出5秒的限制，实际耗时约为15秒左右，所以修改时长限制为20000毫秒。</p>
+<p>运行测试脚本结果如下：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/mini-program-auto-test/企业微信截图_15617135006069.png" alt="img" title>
+                </div>
+                <div class="image-caption">img</div>
+            </figure>
+<p>目前实现的测试功能如下：</p>
+<ul>
+<li>nohost检测</li>
+<li>首页数据拉取、显示、跳转测试</li>
+<li>付费课程详情页按钮显示、跳转、点播、试学功能测试</li>
+<li>优惠券按钮显示、领取功能测试 </li>
+<li>限时优惠按钮显示测试</li>
+<li>免费课程详情页按钮显示、报名、点播功能测试 </li>
+<li>分类页展示、跳转列表页、跳转详情页测试</li>
+</ul>
+<p>Checklist中功能测试的完成情况如下：完成度为65%</p>
+<table>
+<thead>
+<tr>
+<th>review点</th>
+<th>自动化测试</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>是否去除nohost插件</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>首页是否正常显示</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>pc首页小程序登陆是否正常</td>
+<td>暂不</td>
+<td>信息授权无法自动完成</td>
+</tr>
+<tr>
+<td>安卓支付能力是否正常</td>
+<td>暂不</td>
+<td>webview内部无法获取信息</td>
+</tr>
+<tr>
+<td>分类页是否正常显示</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>是否可以正常登陆</td>
+<td>暂不</td>
+<td>信息授权无法自动完成</td>
+</tr>
+<tr>
+<td>课程表是否正常展示，学习进度/直播状态是否正常显示</td>
+<td>支持</td>
+<td>待完善</td>
+</tr>
+<tr>
+<td>课程详情页是否可以正常展示</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>扫码/分享是否正常唤起小程序</td>
+<td>暂不</td>
+<td>开发者工具不支持</td>
+</tr>
+<tr>
+<td>付费课直播是否可以正常播放（上云跟腾讯视频）</td>
+<td>暂不</td>
+<td>开发者工具不支持直播</td>
+</tr>
+<tr>
+<td>免费课直播是否可以正常播放（上云跟腾讯视频）</td>
+<td>暂不</td>
+<td>开发者工具不支持直播</td>
+</tr>
+<tr>
+<td>免费课录播是否可以正常播放（上云跟腾讯视频）</td>
+<td>部分支持</td>
+<td>开发者工具降级到tcplayer</td>
+</tr>
+<tr>
+<td>付费课录播是否可以正常播放（上云跟腾讯视频）</td>
+<td>部分支持</td>
+<td>开发者工具降级到tcplayer</td>
+</tr>
+<tr>
+<td>试学任务是否可以正常播放</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>详情页视频是否正常播放</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>营销工具相关显示是否正常</td>
+<td>支持</td>
+<td></td>
+</tr>
+<tr>
+<td>是否能正常完成支付逻辑</td>
+<td>暂不</td>
+<td>webview内部无法获取信息</td>
+</tr>
+<tr>
+<td>类目筛选是否正常</td>
+<td>支持</td>
+<td>待完善</td>
+</tr>
+<tr>
+<td>是否可以正常搜索且列表显示正常</td>
+<td>支持</td>
+<td>待完善</td>
+</tr>
+<tr>
+<td>本地加载耗时是否保持1s内</td>
+<td>支持</td>
+</tr>
+</tbody>
+</table>
+<h2 id="四、缘续-遇到的问题与功能限制"><a href="#四、缘续-遇到的问题与功能限制" class="headerlink" title="四、缘续-遇到的问题与功能限制"></a>四、缘续-遇到的问题与功能限制</h2><ol>
+<li><p>获取页面中的组件只能采用 <code>page.$()</code> 或 <code>page.$$()</code> 方法，经尝试选择器仅支持组件名和类名。无法直接获取自定义组件内部组件元素，需要在类名前增加前缀。实际项目的页面中大量使用自定义组件，对于自定义组件内部的结构判断非常不方便，只能通过<code>wxml()</code>方法将自定义组件内部结构打印出来才能确认内部的子组件的实际情况。且无法调用自定义组件内部的方法。</p>
+</li>
+<li><p>Jest的snapshot功能对于结构相对固定的组件或页面是一种非常好的测试方式，但用起来有坑。在小程序中snapshot的对照内容通常是通过组件的wxml方法打印的字符串，但实际在运行时，wxml方法返回结果可能会不同，组件可能会被自动添加上wx:node-id属性，但有时返回字符串中又不添加，会导致snapshot测试不通过。</p>
+</li>
+<li><p>目前只能在开发者工具环境下测试，导致直播功能无法测试且云点播会自动降级为腾讯视频点播，直播也无法测试。</p>
+</li>
+<li><p>登陆、扫码等功能无法测试，因为自动化控制工具无法扫描和点击授权弹窗。</p>
+</li>
+<li><p><code>&lt;web-view&gt;</code> 组件获取不到任何内部信息，也无法自动化控制。</p>
+</li>
+</ol>
+<p>希望这些问题后续能够得到解决~~</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/小程序/">小程序</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/自动化/">自动化</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/08/07/mini-program-auto-test/&title=《小程序自动化测试实践》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/08/07/mini-program-auto-test/&title=《小程序自动化测试实践》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/08/07/mini-program-auto-test/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《小程序自动化测试实践》 — OEDx&url=http://oedx.github.io/2019/08/07/mini-program-auto-test/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/08/07/mini-program-auto-test/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/12/24/cocos-creator-api-compat/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Cocos Creator 最佳实践：JavaScript兼容性问题规避</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/07/03/cocos-creator-js-binding-auto/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">【Cocos Creator】Cocos Creater 中如何实现JSB的自动绑定</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/08/07/mini-program-auto-test/&title=《小程序自动化测试实践》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/08/07/mini-program-auto-test/&title=《小程序自动化测试实践》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/08/07/mini-program-auto-test/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《小程序自动化测试实践》 — OEDx&url=http://oedx.github.io/2019/08/07/mini-program-auto-test/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/08/07/mini-program-auto-test/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMYAAADGCAAAAACs8KCBAAACKklEQVR42u3aQW7DMAwF0d7/0u62QGF5Pqm0MDVaBYlt6XnBUKS+vvC4foy7X39feXfX3a/rWTYMGTJkvJZxLcfdBHefyZPJlXxtMmTIOIdBwihZ3PrKNKyTtcmQIUPG+ho+fedFyJAhQ0aNsd6g1p7wDwFXhgwZr2L0g2BaDePBd/NeXIYMGS9k8EX8/eeP9DdkyJDxKsYVDp4U1hoDxVXJkCFjNIMHOJ4s8sJcJ+DKkCHjNAafjAdTfjgsLcAF6aMMGTJGMDrTkEMV/C22niZDhowDGCS0daZJt7JxA0CGDBnHMHY1DNLDFuk2NTgtIkOGjBGMdDtai3VpS4CX+WTIkHECYx0c+xvO2iY2fgUyZMg4gLGeLKV+IkF84MmQIWM0g6df6ZGvdIPaaUvIkCFjNiMt65O70hI/BzwctpAhQ8ZQBk/ILjA6oTltkaIGpwwZMkYw+AS8AcCD8q57ZciQMZvBl8vLXoSdlvnQNTJkyBjNII3JflK46/uH1yRDhoyhjDT5C95Nu6gX/A3IkCHjAEYtgeNFur3b14dGpgwZMoYySBhtBcTwsEVcT5MhQ8ZQRm2z2mlVpsEU3SVDhozRDD52NTh3JYt8XhkyZMxgpEV/3nqshc7i6TYZMmQcwOgEvhTQSfsetrIyZMiQUco6eeJYaz/IkCFDBgmmaWDlm9igdSFDhowDGHxZnyjMpVVAGTJknMbgt/FSPlluuogNTU0ZMmS8j/ENnFYD8XlCK5EAAAAASUVORK5CYII=" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

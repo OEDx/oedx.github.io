@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>精确定位 Cocos 线上报错 | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos">
+    <meta name="description" content="图片源自 Zoommy              在 Cocos-JS 的项目中，编译时往往采用 加密 + 压缩 的方式。最终 CocosCreator 编译出的代码文件都是无法直接阅读的，代码文件有 jsb_po">
+<meta name="keywords" content="Cocos">
+<meta property="og:type" content="article">
+<meta property="og:title" content="精确定位 Cocos 线上报错">
+<meta property="og:url" content="http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="图片源自 Zoommy              在 Cocos-JS 的项目中，编译时往往采用 加密 + 压缩 的方式。最终 CocosCreator 编译出的代码文件都是无法直接阅读的，代码文件有 jsb_po">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-242430%20-1-.jpg">
+<meta property="og:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-024003.png">
+<meta property="og:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202019-01-14%20%E4%B8%8A%E5%8D%8810.44.06.png">
+<meta property="og:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-031132.png">
+<meta property="og:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-031647.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="精确定位 Cocos 线上报错">
+<meta name="twitter:description" content="图片源自 Zoommy              在 Cocos-JS 的项目中，编译时往往采用 加密 + 压缩 的方式。最终 CocosCreator 编译出的代码文件都是无法直接阅读的，代码文件有 jsb_po">
+<meta name="twitter:image" content="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-242430%20-1-.jpg">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">精确定位 Cocos 线上报错</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">精确定位 Cocos 线上报错</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-01-14T17:01:35.000Z" itemprop="datePublished" class="page-time">
+  2019-01-14
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#使用-Cocos-JS-加解密工具来定位问题代码行"><span class="post-toc-number">1.</span> <span class="post-toc-text">使用 Cocos-JS 加解密工具来定位问题代码行</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-precise-positioning-cocos-online-error" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">精确定位 Cocos 线上报错</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-01-14 17:01:35" datetime="2019-01-14T17:01:35.000Z" itemprop="datePublished">2019-01-14</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p><a href="http://khanzhang.cn">张韩(khanzhang)</a></p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-242430%20-1-.jpg" alt="图片源自 Zoommy" title>
+                </div>
+                <div class="image-caption">图片源自 Zoommy</div>
+            </figure>
+<p>在 Cocos-JS 的项目中，编译时往往采用 加密 + 压缩 的方式。最终 CocosCreator 编译出的代码文件都是无法直接阅读的，代码文件有 jsb_polyfill.jsc、project.jsc、setting.jsc。强行打开如下图：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-024003.png" alt="乱码" title>
+                </div>
+                <div class="image-caption">乱码</div>
+            </figure><br>应用上线后，如有线上 JS 报错，很多情况也是无法直接定位到问题的，错误中指明的只有在 jsb_polyfill.js 文件的多少行有问题，而无法还原到实际的代码文件。比如：<br><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202019-01-14%20%E4%B8%8A%E5%8D%8810.44.06.png" alt="线上报错" title>
+                </div>
+                <div class="image-caption">线上报错</div>
+            </figure><br>对于此类问题，可以通过 Cocos-JS 加解密工具来帮助我们更加精确的定位问题，其代码地址为 <a href="https://github.com/CSIGer/cocos-jsc-endecryptor" target="_blank" rel="noopener">cocos-jsc-endecryptor</a>。</p>
+<h2 id="使用-Cocos-JS-加解密工具来定位问题代码行"><a href="#使用-Cocos-JS-加解密工具来定位问题代码行" class="headerlink" title="使用 Cocos-JS 加解密工具来定位问题代码行"></a>使用 Cocos-JS 加解密工具来定位问题代码行</h2><blockquote>
+<p>这里以线下 Cocos 编译的 project.jsc 为例</p>
+</blockquote>
+<ol>
+<li>把上述工具的代码拉到本地</li>
+<li><p>终端执行如下命令即可将加密编译出的代码文件反编译出来，以 project.jsc 文件为例，你需要替换括号中内容为你实际的路径和密钥：</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;PATH&#125;/cocos-jsc-endecryptor/edc.py decrypt -k &#123;COCOS_PROJECT_ENCRYT_KEY&#125; -p &#123;COCOS_PROJECT_PATH&#125;/build/jsb-default/src/project.jsc</span><br></pre></td></tr></table></figure>
+<p> 你也可以在 VSCode 中配置一项任务，之后直接在 VSCode 中运行该任务即可编译出 project.jsc 来定位问题：</p>
+ <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"label"</span>: <span class="string">"decryABCmouse"</span>,</span><br><span class="line">    <span class="attr">"group"</span>: &#123;</span><br><span class="line">        <span class="attr">"kind"</span>: <span class="string">"build"</span>,</span><br><span class="line">        <span class="attr">"isDefault"</span>: <span class="literal">true</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"type"</span>: <span class="string">"shell"</span>,</span><br><span class="line">    <span class="attr">"command"</span>: <span class="string">"&#123;PATH&#125;/cocos-jsc-endecryptor/edc.py decrypt -k &#123;COCOS_PROJECT_ENCRYT_KEY&#125; -p &#123;COCOS_PROJECT_PATH&#125;/build/jsb-default/src/project.jsc ; open &#123;COCOS_PROJECT_PATH&#125;/decryptOutput"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注：VS Code 中配置任务可以在 <code>Cmd + Shift + P</code> 呼出命令面板后，输入 <code>tasks configure task</code>，然后根据提示新增任务，之后可以在命令面板输入 <code>tasks run task</code>，运行刚刚创建的命令。</p>
+</blockquote>
+</li>
+<li><p>打开 project.jsc 解密后的文件 decry.js，使用 Ctrl + G 快捷键呼出快速跳转代码行窗口，输入线上报错中的行数，如上图报错中的 16661。即可快速跳转到出错行对应的代码：<br> <img src="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-031132.png" alt="跳转至对应行"><br> 然后即可看到具体的代码，而非乱码。之后即可根据这里更加具体的代码来定位问题：<br> <img src="https://blog-pic-1251295613.cos.ap-guangzhou.myqcloud.com/2019-01-14-031647.png" alt="具体代码行"></p>
+</li>
+</ol>
+<blockquote>
+<p>注：这里以线下 Cocos 编译的 project.jsc 为例，你也可以反编译对应的 jsb_polyfill.jsc 文件。如果是编译线上的文件，可以在对应的 apk 中找到。</p>
+</blockquote>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/&title=《精确定位 Cocos 线上报错》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/&title=《精确定位 Cocos 线上报错》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《精确定位 Cocos 线上报错》 — OEDx&url=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2019/03/14/brief-analysis-of-the-cocoscreator-engine-resource-loading-and-release-principle/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">CocosCreator 引擎资源加载与释放原理简析</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2018/09/14/jsc-encryption-and-decryption-tools-for-cocos/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">适用于 Cocos 的 JSC 加解密工具</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/&title=《精确定位 Cocos 线上报错》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/&title=《精确定位 Cocos 线上报错》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《精确定位 Cocos 线上报错》 — OEDx&url=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2019/01/14/precise-positioning-cocos-online-error/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAAAAAB3DOFrAAACtElEQVR42u3a0WrjMBAFUP//T3dhnwpdO/dqpKQLR08hdWwdF6Thjq4rHl9/x/fPz+Puyrt7/rw++X7bwMPDw1uaej7RHJlMN38F+dPx8PDw3sPLN4PnByeLfvLb9om33+Ph4eF9lJfXrvniPinr8fDw8P4XXrvEPxfB89eEh4eH9yleEkYkvEmskMzqYNaCh4eHF/Mm5eynPh/v7+Hh4eEtddXbJtZ8yV5rmN0+Cw8PD+8Arw0X8mggL7XXrs9fDR4eHt5e3tpiPWn/1yHs4PABHh4e3jleC8jL2fmWk0e6/5g5Hh4e3jHeJMDNp55/3x442LDv4eHh4cW8NgjI2//Pi/uuGCKKKvDw8PC28nYVxGt/XYsqioYcHh4e3jHeruB1LcKYw263Hzw8PLwDvPmyPtlCWkD+iq9duxYeHh7eTcKZA/KyuC2akw1mMcDFw8PDeyOvPVA1eQVXMOqIGQ8PD+8Ab1LOJnFqG160jbHo6Xh4eHhbeW1LaT71doqTO+Dh4eGd5k3K5b0R8CTsuN0Y8PDw8I7x2gMBo5j1MXTIDwfczhAPDw/vMC9ZoK9y5Mew2vsUZ8rw8PDwDvDadlcbT7RF89qzbltfeHh4eFt5SRyQhwtrgUL+UvLi+0V/Dw8PD2/MawvZyTYwP3awq0zHw8PDW+PloUMRnpYTWlvo8fDw8H4DLy+R1xpX+W/bQDk6dIWHh4e3ibfWasqL2vY41yS8iH6Lh4eHN+Z9lSMPdvPydxIW4+Hh4b2ft1byzgvl+evIgw88PDy8E7y1o1FrTbK1MKL9/+Dh4eG9hzcpl+fRw2QHezFPPDw8vI/yJs2wZFNJgoa69YWHh4f3C3hJIT5pa7V3e3E9Hh4e3jFeG0a0RfbkXMNoe8DDw8M7wNvVAGuParWldr5t1AMPDw8v5f0BBwhzqFjwsbYAAAAASUVORK5CYII=" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

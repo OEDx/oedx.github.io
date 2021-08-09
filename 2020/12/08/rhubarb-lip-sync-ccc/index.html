@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>让你的角色学会说话——rhubarb-lip-sync-ccc | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos Creator,Cocos,插件">
+    <meta name="description" content="lipsync               rhubarb-lip-sync-ccc (简称 lipsync) 是一款专用于 Cocos Creator 的嘴型动画生成插件，它可以根据一段语音生成嘴型动画的 Ani">
+<meta name="keywords" content="Cocos Creator,Cocos,插件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="让你的角色学会说话——rhubarb-lip-sync-ccc">
+<meta property="og:url" content="http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="lipsync               rhubarb-lip-sync-ccc (简称 lipsync) 是一款专用于 Cocos Creator 的嘴型动画生成插件，它可以根据一段语音生成嘴型动画的 Ani">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://forum.cocos.org/uploads/default/optimized/3X/0/a/0a7f636acdc06f1c07b6bd2f55ce83dee06a3b9f_2_1380x698.jpeg">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="让你的角色学会说话——rhubarb-lip-sync-ccc">
+<meta name="twitter:description" content="lipsync               rhubarb-lip-sync-ccc (简称 lipsync) 是一款专用于 Cocos Creator 的嘴型动画生成插件，它可以根据一段语音生成嘴型动画的 Ani">
+<meta name="twitter:image" content="https://forum.cocos.org/uploads/default/optimized/3X/0/a/0a7f636acdc06f1c07b6bd2f55ce83dee06a3b9f_2_1380x698.jpeg">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">让你的角色学会说话——rhubarb-lip-sync-ccc</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">让你的角色学会说话——rhubarb-lip-sync-ccc</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2020-12-08T17:33:00.000Z" itemprop="datePublished" class="page-time">
+  2020-12-08
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#项目信息"><span class="post-toc-number">1.</span> <span class="post-toc-text">项目信息</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Demo"><span class="post-toc-number">2.</span> <span class="post-toc-text">Demo</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#使用方法"><span class="post-toc-number">3.</span> <span class="post-toc-text">使用方法</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#常见问题"><span class="post-toc-number">4.</span> <span class="post-toc-text">常见问题</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#如何获取帮助"><span class="post-toc-number">5.</span> <span class="post-toc-text">如何获取帮助</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-rhubarb-lip-sync-ccc" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">让你的角色学会说话——rhubarb-lip-sync-ccc</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2020-12-08 17:33:00" datetime="2020-12-08T17:33:00.000Z" itemprop="datePublished">2020-12-08</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p><a href="http://hahack.com">潘伟洲(josephpan)</a></p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="https://forum.cocos.org/uploads/default/optimized/3X/0/a/0a7f636acdc06f1c07b6bd2f55ce83dee06a3b9f_2_1380x698.jpeg" alt="lipsync" title>
+                </div>
+                <div class="image-caption">lipsync</div>
+            </figure> 
+<p>rhubarb-lip-sync-ccc (简称 lipsync) 是一款专用于 Cocos Creator 的嘴型动画生成插件，它可以根据一段语音生成嘴型动画的 Animation Clip 。适合用于制作游戏角色的说话动画。支持中英文语言。</p>
+<p>rhubarb-lip-sync-ccc 基于 DanielSWolf /rhubarb-lip-sync，在他的基础上添加了对自动生成 Cocos Creator 的 Animation Clip 的支持。</p>
+<a id="more"></a>
+<h2 id="项目信息"><a href="#项目信息" class="headerlink" title="项目信息"></a>项目信息</h2><ul>
+<li>插件商店：<a href="https://store.cocos.com/#/resources/detail/2572" target="_blank" rel="noopener">https://store.cocos.com/#/resources/detail/2572</a></li>
+<li>源代码仓库：<a href="https://github.com/wzpan/rhubarb-lip-sync-ccc" target="_blank" rel="noopener">https://github.com/wzpan/rhubarb-lip-sync-ccc</a></li>
+</ul>
+<h2 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h2><ul>
+<li>demo 视频：</li>
+</ul>
+<iframe src="//player.bilibili.com/player.html?aid=458012711&bvid=BV1V5411G7cm&cid=263901047&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="460px"> </iframe>
+
+<ul>
+<li>相关的示例仓库代码在：<a href="https://github.com/wzpan/lipsync-demo" target="_blank" rel="noopener">https://github.com/wzpan/lipsync-demo</a></li>
+</ul>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><ol>
+<li><p>在 Cocos Creator 主菜单中，打开 【extensions】菜单 -&gt; 【lipsync】-&gt; 【launch】。开启 lipsync 的面板。</p>
+</li>
+<li><p>将嘴型图拖拽到对应的嘴型槽中，完成嘴型绑定。其中，6种嘴型（A, B, C, D, E, F）是必须的；而 G，H，X 嘴型则为可选。但推荐都提供，这样最终生成的结果会更为自然。</p>
+</li>
+<li><p>从本地选择一个录音文件。如果是非英文语言，建议取消勾选【是英文音频？】的选项。（这个选项将决定使用不同的识别器。对于英文录音，我们使用 PocketSphinx ；而对于其他语音的录音，我们使用 Phonetic。）</p>
+</li>
+<li><p>创建一个空的 Animation Clip ，并拖入目标 Animation Clip 槽位中。</p>
+</li>
+</ol>
+<p>完成以上四步之后，点击 【生成】 按钮，即开始生成动画。可以打开 Cocos Creator 的控制台面板，查看控制台日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">isEnglish: true</span><br><span class="line"></span><br><span class="line">extendedShapes: GHX</span><br><span class="line"></span><br><span class="line">识别中...</span><br><span class="line"></span><br><span class="line">f5e3f311-875c-4fba-a235-173a82141735</span><br><span class="line"></span><br><span class="line">&#123;&quot;__type__&quot;:&quot;cc.AnimationClip&quot;,&quot;_name&quot;:&quot;happy_birthday&quot;,&quot;_objFlags&quot;:0,&quot;_duration&quot;:1.32,&quot;sample&quot;:100,&quot;curveData&quot;:&#123;&quot;comps&quot;:&#123;&quot;cc.Sprite&quot;:&#123;&quot;spriteFrame&quot;:[&#123;&quot;frame&quot;:0,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;ac9ba9a0-efb8-4576-8d8a-6e9c4a178d2e&quot;&#125;&#125;,&#123;&quot;frame&quot;:0.04,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;a3aec0dc-fca3-4d4a-a93a-7e49a6f062a1&quot;&#125;&#125;,&#123;&quot;frame&quot;:0.22,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;d0778f9c-6403-42b6-9170-50783cdb777a&quot;&#125;&#125;,&#123;&quot;frame&quot;:0.3,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;e8474869-278a-4198-b6b9-3512bad62d54&quot;&#125;&#125;,&#123;&quot;frame&quot;:0.47,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;d0778f9c-6403-42b6-9170-50783cdb777a&quot;&#125;&#125;,&#123;&quot;frame&quot;:0.55,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;31364f93-705e-4cdb-b126-5acc5a5fd1c9&quot;&#125;&#125;,&#123;&quot;frame&quot;:0.79,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;dadaffea-9cc3-4082-b1b2-02d84200792b&quot;&#125;&#125;,&#123;&quot;frame&quot;:0.93,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;e8474869-278a-4198-b6b9-3512bad62d54&quot;&#125;&#125;,&#123;&quot;frame&quot;:1.21,&quot;value&quot;:&#123;&quot;__uuid__&quot;:&quot;ac9ba9a0-efb8-4576-8d8a-6e9c4a178d2e&quot;&#125;&#125;]&#125;&#125;&#125;,&quot;events&quot;:[],&quot;speed&quot;:1,&quot;wrapMode&quot;:1&#125;</span><br><span class="line"></span><br><span class="line">生成成功！</span><br></pre></td></tr></table></figure>
+<p>如果出现 “生成成功！” 的消息，说明生成已经成功。此时可以将该 Animation Clip 拖动到嘴巴节点的 Animation 组件上，看看效果。</p>
+<blockquote>
+<p>温馨提示：如果发现虽然动画生成成功，但是该动画没有任何帧，可以重启 Cocos Creator 看看问题是否解决。</p>
+</blockquote>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><ol>
+<li><p>插件可以白嫖吗？</p>
+<p> 可以（<del>您良心过意的去就好</del>）。</p>
+</li>
+<li><p>支持 Windows 吗？</p>
+<p> 代码里是加入了 Windows 的支持。没实际测试过。欢迎当一把小白鼠。有问题跟我反馈就好。</p>
+</li>
+<li><p>支持 Mac M1 吗？</p>
+<p> Cocos Creator 好像也还不支持吧？</p>
+</li>
+<li><p>为毛要收费 1 块钱？</p>
+<p> 写插件不为了赚钱，只为交个朋友（<del>我写插件不用花时间吗？1 块钱都不给我 555</del>）</p>
+</li>
+<li><p>支持 3D 吗？</p>
+<p> 贴图的嘴巴是 ok 的。3D 的嘴型的话，建议直接用 rhubarb-lip-sync 生成每个时刻的嘴型数据，然后动态替换嘴型。</p>
+</li>
+<li><p>支持 Spine 动画吗？</p>
+<p> 可以移步 <a href="https://github.com/DanielSWolf/rhubarb-lip-sync#spine" target="_blank" rel="noopener">DanielSWolf/rhubarb-lip-sync</a> （<del>主要是因为穷买不起 Spine</del>）。</p>
+</li>
+<li><p>计划支持 3.0 吗？</p>
+<p> 有计划。先上了 2.0 的商店看看大家反馈，如果有 bug ，修一波再说。</p>
+</li>
+</ol>
+<h2 id="如何获取帮助"><a href="#如何获取帮助" class="headerlink" title="如何获取帮助"></a>如何获取帮助</h2><p>目前只在 Mac 上测试过， Windows 上理论上也可以支持。</p>
+<p>如果使用上遇到问题，请在 <a href="https://github.com/wzpan/rhubarb-lip-sync-ccc" target="_blank" rel="noopener">项目</a> 仓库上提 issue 反馈。建议带上你的测试工程，方便我定位问题。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos-Creator/">Cocos Creator</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/插件/">插件</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/&title=《让你的角色学会说话——rhubarb-lip-sync-ccc》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/&title=《让你的角色学会说话——rhubarb-lip-sync-ccc》 — OEDx&source=
+                
+                    
+                    
+                
+..." data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《让你的角色学会说话——rhubarb-lip-sync-ccc》 — OEDx&url=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2020/12/29/FFmpeg-Cocos-Creator/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">基于 FFmpeg 的 Cocos Creator 视频播放器</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2020/06/30/cocos-creator-extensions/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">人生苦短，我们为 Cocos Creator 开发的插件和工具</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/&title=《让你的角色学会说话——rhubarb-lip-sync-ccc》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/&title=《让你的角色学会说话——rhubarb-lip-sync-ccc》 — OEDx&source=
+                
+                    
+                    
+                
+..." data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《让你的角色学会说话——rhubarb-lip-sync-ccc》 — OEDx&url=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2020/12/08/rhubarb-lip-sync-ccc/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMYAAADGCAAAAACs8KCBAAACMElEQVR42u3awW7DQAhF0f7/T7vbSmnQfeC0MnO9shzLmTMLBANfX/i6flzvnrw+5+/U37ztkiFDxmMZV3nVjNf71y/XTzis3hoZMmScwKgXUd83/xiHdbJBMmTIkMGTwkmiOQnlMmTIkEE+PXkz/YIMGTLOZJAiNg2sdZDlwffmWlyGDBkPZPBF/P39R/obMmTIeBTjCi8SEPlxf71NwapkyJCxmsEDHFkuL1znqacMGTLOYfT+Mi0+J3uMSlYZMmSsZvRSvTq9I4NfJPimCaUMGTK2MsjABCeRIrZHDUKtDBkyljL40AM5hkt5va2RIUPGOYz6B560pWG9V8Q2K3IZMmQ8nMEP6OfHbemW1YH+lyJWhgwZSxnzcYd0jIyDe6W1DBkydjPS8jJtKqTJJR8ykyFDxm5G2lDkYxm8AcmbE6MerAwZMh7L4MMNpHnAy1TeTgiKZBkyZCxl3JWipSUuL3rR8ZwMGTJWM3qFKA+v6RDG6FcZMmSsZvTaA59YEEkTZciQcSajF3B7Y2H/fHYoQ4aMRYz5oX8dQOfn+SjgypAhYx2DpGi9YNosRNPwLUOGjKWMK7wI8t7Sl2ylDBkydjPSMMcHI9JBirSd2QzZMmTIeCwjLVM/MeDVK2tlyJBxGiMtUOdNyl7a9zZky5AhQwYoU3mTkuSqzexVhgwZMsA7pKxN14NGNGTIkHEAgx/lT47MgmXhBFGGDBknMHp5Vy+wki3opZgyZMhYyvgG90ID8a1jvIMAAAAASUVORK5CYII=" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>

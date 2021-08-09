@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-41569408-2', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+<!-- End Google Analytics -->
+
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>基于 FFmpeg 的 Cocos Creator 视频播放器 | OEDx | 腾讯在线教育部技术博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="Cocos">
+    <meta name="description" content="只为解决一个核心问题，追求更好体验。  背景腾讯开心鼠项目使用的游戏引擎是 Cocos Creator，由于引擎提供的视频组件实现方式问题导致视频组件和游戏界面分了层，从而导致了以下若干问题:  不可以在视频组件上添加其他渲染组件； 不可以使用遮罩组件来限定视频形状； 退出场景时存在视频组件残影； 等等…  核心问题就是分层问题，对于开心鼠项目带来的最大弊端就是：一套设计，Android，iOS">
+<meta name="keywords" content="Cocos">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 FFmpeg 的 Cocos Creator 视频播放器">
+<meta property="og:url" content="http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/index.html">
+<meta property="og:site_name" content="OEDx">
+<meta property="og:description" content="只为解决一个核心问题，追求更好体验。  背景腾讯开心鼠项目使用的游戏引擎是 Cocos Creator，由于引擎提供的视频组件实现方式问题导致视频组件和游戏界面分了层，从而导致了以下若干问题:  不可以在视频组件上添加其他渲染组件； 不可以使用遮罩组件来限定视频形状； 退出场景时存在视频组件残影； 等等…  核心问题就是分层问题，对于开心鼠项目带来的最大弊端就是：一套设计，Android，iOS">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://oedx.github.io/images/FFmpeg-Cocos-Creator/1609213303_85_w2856_h1188.png">
+<meta property="og:image" content="http://oedx.github.io/images/FFmpeg-Cocos-Creator/ntB1Ew.png">
+<meta property="og:image" content="http://oedx.github.io/images/FFmpeg-Cocos-Creator/1606737160_43_w4030_h2180.png">
+<meta property="og:image" content="http://oedx.github.io/images/FFmpeg-Cocos-Creator/Wn9Lbz.png">
+<meta property="og:image" content="http://oedx.github.io/images/FFmpeg-Cocos-Creator/aHbvFN.png">
+<meta property="og:image" content="http://oedx.github.io/images/FFmpeg-Cocos-Creator/xKR8ij.png">
+<meta property="og:updated_time" content="2021-08-09T07:09:55.353Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于 FFmpeg 的 Cocos Creator 视频播放器">
+<meta name="twitter:description" content="只为解决一个核心问题，追求更好体验。  背景腾讯开心鼠项目使用的游戏引擎是 Cocos Creator，由于引擎提供的视频组件实现方式问题导致视频组件和游戏界面分了层，从而导致了以下若干问题:  不可以在视频组件上添加其他渲染组件； 不可以使用遮罩组件来限定视频形状； 退出场景时存在视频组件残影； 等等…  核心问题就是分层问题，对于开心鼠项目带来的最大弊端就是：一套设计，Android，iOS">
+<meta name="twitter:image" content="http://oedx.github.io/images/FFmpeg-Cocos-Creator/1609213303_85_w2856_h1188.png">
+    
+        <link rel="alternate" type="application/atom+xml" title="OEDx" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="stylesheet" href="/css/style.css?v=1.7.2">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/oedx.png">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">oedx</h5>
+          <a href="mailto:null" class="mail">
+        </a></hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx/OEDx/blob/master/README.md" target="_blank">
+                <i class="icon icon-lg icon-edit"></i>
+                投稿
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/OEDx" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">基于 FFmpeg 的 Cocos Creator 视频播放器</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">基于 FFmpeg 的 Cocos Creator 视频播放器</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2020-12-29T17:03:37.000Z" itemprop="datePublished" class="page-time">
+  2020-12-29
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#背景"><span class="post-toc-number">1.</span> <span class="post-toc-text">背景</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#解决方案"><span class="post-toc-number">2.</span> <span class="post-toc-text">解决方案</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#任务细分"><span class="post-toc-number">3.</span> <span class="post-toc-text">任务细分</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#任务详情"><span class="post-toc-number">4.</span> <span class="post-toc-text">任务详情</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#移动端-ffplay-播放音视频"><span class="post-toc-number">4.1.</span> <span class="post-toc-text">移动端 ffplay 播放音视频</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#JSB-绑定视频组件接口"><span class="post-toc-number">4.2.</span> <span class="post-toc-text">JSB 绑定视频组件接口</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#视频展示，纹理渲染"><span class="post-toc-number">4.3.</span> <span class="post-toc-text">视频展示，纹理渲染</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#音频播放"><span class="post-toc-number">4.4.</span> <span class="post-toc-text">音频播放</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#优化与扩展"><span class="post-toc-number">4.5.</span> <span class="post-toc-text">优化与扩展</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#边下边播"><span class="post-toc-number">4.5.1.</span> <span class="post-toc-text">边下边播</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#libyuv-替换-swscale"><span class="post-toc-number">4.5.2.</span> <span class="post-toc-text">libyuv 替换 swscale</span></a></li><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#Android-asset-协议"><span class="post-toc-number">4.5.3.</span> <span class="post-toc-text">Android asset 协议</span></a></li></ol></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#成果展示"><span class="post-toc-number">5.</span> <span class="post-toc-text">成果展示</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#参考文档"><span class="post-toc-number">6.</span> <span class="post-toc-text">参考文档</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-FFmpeg-Cocos-Creator" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">基于 FFmpeg 的 Cocos Creator 视频播放器</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2020-12-29 17:03:37" datetime="2020-12-29T17:03:37.000Z" itemprop="datePublished">2020-12-29</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/客户端/">客户端</a></li></ul>
+
+
+
+            
+    <ul class="article-category-list">
+        <li class="article-category-list-item">
+            <p>黄成华(galiohuang)</p>
+
+        </li>
+    </ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style="display:none">
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div style="display: none">
+             <image src="https://oedx.github.io/img/oedx.png"></image>
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <blockquote>
+<p>只为解决一个核心问题，追求更好体验。</p>
+</blockquote>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>腾讯开心鼠项目使用的游戏引擎是 Cocos Creator，由于引擎提供的视频组件实现方式问题导致视频组件和游戏界面分了层，从而导致了以下若干问题:</p>
+<ol>
+<li>不可以在视频组件上添加其他渲染组件；</li>
+<li>不可以使用遮罩组件来限定视频形状；</li>
+<li>退出场景时存在视频组件残影；</li>
+<li>等等…</li>
+</ol>
+<p>核心问题就是分层问题，对于开心鼠项目带来的最大弊端就是：一套设计，Android，iOS，Web 三端需要各自实现，开发和维护成本高，又因为平台差异化，还存在视觉不一致和表现不一致问题。</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/FFmpeg-Cocos-Creator/1609213303_85_w2856_h1188.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<p>因为开心鼠项目需要兼容 Android，iOS 和 Web 三端，Android 和 iOS 一起视为移动端，所以解决方案有以下两点：</p>
+<ol>
+<li>移动端可使用 FFmpeg 库解码视频流，然后使用 OpenGL 来渲染视频，和使用 Andorid, iOS 两端各自的音频接口来播放音频；</li>
+<li>网页端可以直接使用 <code>video</code> 元素来解码音视频，然后使用 WebGL 来渲染视频，和使用 <code>video</code> 元素来播放音频。</li>
+</ol>
+<h2 id="任务细分"><a href="#任务细分" class="headerlink" title="任务细分"></a>任务细分</h2><figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/FFmpeg-Cocos-Creator/ntB1Ew.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<h2 id="任务详情"><a href="#任务详情" class="headerlink" title="任务详情"></a>任务详情</h2><h3 id="移动端-ffplay-播放音视频"><a href="#移动端-ffplay-播放音视频" class="headerlink" title="移动端 ffplay 播放音视频"></a>移动端 ffplay 播放音视频</h3><p>FFmpeg 官方源码，可以编译出三个可执行程序，分别是 ffmpeg, ffplay, ffprobe ，三者作用分别是：</p>
+<ol>
+<li>ffmpeg 用于音视频视频格式转换，视频裁剪等；</li>
+<li>ffplay 用于播放音视频，需要依赖 SDL；</li>
+<li>ffprobe 用于分析音视频流媒体数据。</li>
+</ol>
+<p>其中 ffplay 程序满足了播放音视频的需求，理论上，只要把 SDL 视频展示和音频播放接口替换成移动端接口，就能完成 Cocos Creator 的音视频播放功能，但在实际 ffplay 改造过程中，还是会遇到很多小问题，例如：在移动端使用 swscale 进行纹理缩放和像素格式转换效率低下，不支持 Android asset 文件读取问题等等，下文会逐一解决。经过一系列改造后，Cocos Creator 可用的 AVPlayer 诞生了。以下为 AVPlayer 播放音视频流程分析：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/FFmpeg-Cocos-Creator/1606737160_43_w4030_h2180.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<p>概括：</p>
+<ol>
+<li>调用 stream_open 函数，初始化状态信息和数据队列，并创建 read_thread 和 refresh_thread；</li>
+<li>read_thread 主要职责为打开流媒体，创建解码线程（音频，视频，字幕），读取原始数据；</li>
+<li>解码线程分别解码原始数据，得到视频图片序列，音频样本序列，字幕字符串序列；</li>
+<li>在创建音频解码器过程中，同时打开了音频设备，在播放过程中，会不断消耗生成的音频样本；</li>
+<li>refresh_thread 主要职责为不断消耗视频图片序列和字幕字符串序列。</li>
+</ol>
+<p>ffplay 改造后的 AVPlayer UML如下：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/FFmpeg-Cocos-Creator/Wn9Lbz.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<p>声明：因为本人少接触 c 和 c++ ，所以在 ffplay 改造过程中，SDL 线程改造和字幕分析参考了 bilibili 的 ijkplayer 源码。</p>
+<h3 id="JSB-绑定视频组件接口"><a href="#JSB-绑定视频组件接口" class="headerlink" title="JSB 绑定视频组件接口"></a>JSB 绑定视频组件接口</h3><p>此节不适合 Web 端，关于 JSB 相关知识，可查阅文档：<a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/JSB2.0-learning.html" target="_blank" rel="noopener">JSB 2.0 绑定教程</a></p>
+<p>概括 JSB 功能：通过 ScriptEngine 暴露的接口绑定 JS 对象和其他语言对象，让 JS 对象控制其他语言对象。</p>
+<p>因为播放器逻辑使用 C 和 C++ 编码，所以需要绑定 JS 和 C++ 对象。上文中的 AVPlayer 只负责解码和播放流程，播放器还需要处理入参处理，视频渲染和音频播放等工作，因此封装了一个类：Video，其 UML 如下：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/FFmpeg-Cocos-Creator/aHbvFN.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<p>Video.cpp 绑定的 JS 对象声明如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">js_register_video_Video</span><span class="params">(se::Object *obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> cls = se::Class::create(<span class="string">"Video"</span>, obj, <span class="literal">nullptr</span>, _SE(js_gfx_Video_constructor));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"init"</span>, _SE(js_gfx_Video_init));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"prepare"</span>, _SE(js_gfx_Video_prepare));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"play"</span>, _SE(js_gfx_Video_play));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"resume"</span>, _SE(js_gfx_Video_resume));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"pause"</span>, _SE(js_gfx_Video_pause));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"currentTime"</span>, _SE(js_gfx_Video_currentTime));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"addEventListener"</span>, _SE(js_gfx_Video_addEventListener));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"stop"</span>, _SE(js_gfx_Video_stop));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"clear"</span>, _SE(js_gfx_Video_clear));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"setURL"</span>, _SE(js_gfx_Video_setURL));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"duration"</span>, _SE(js_gfx_Video_duration));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"seek"</span>, _SE(js_gfx_Video_seek));</span><br><span class="line">    cls-&gt;defineFunction(<span class="string">"destroy"</span>, _SE(js_cocos2d_Video_destroy));</span><br><span class="line">    cls-&gt;defineFinalizeFunction(_SE(js_cocos2d_Video_finalize));</span><br><span class="line">    cls-&gt;install();</span><br><span class="line">    JSBClassType::registerClass&lt;cocos2d::renderer::Video&gt;(cls);</span><br><span class="line"></span><br><span class="line">    __jsb_cocos2d_renderer_Video_proto = cls-&gt;getProto();</span><br><span class="line">    __jsb_cocos2d_renderer_Video_class = cls;</span><br><span class="line"></span><br><span class="line">    se::ScriptEngine::getInstance()-&gt;clearException();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">register_all_video_experiment</span><span class="params">(se::Object *obj)</span> </span>&#123;</span><br><span class="line">    se::Value nsVal;</span><br><span class="line">    <span class="keyword">if</span> (!obj-&gt;getProperty(<span class="string">"gfx"</span>, &amp;nsVal)) &#123;</span><br><span class="line">        <span class="function">se::HandleObject <span class="title">jsobj</span><span class="params">(se::Object::createPlainObject())</span></span>;</span><br><span class="line">        nsVal.setObject(jsobj);</span><br><span class="line">        obj-&gt;setProperty(<span class="string">"gfx"</span>, nsVal);</span><br><span class="line">    &#125;</span><br><span class="line">    se::Object *ns = nsVal.toObject();</span><br><span class="line"></span><br><span class="line">    js_register_video_Video(ns);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 概括：以上声明，表示可在 JS 代码中，使用以下方法</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> video = <span class="keyword">new</span> gfx.Video();                                <span class="comment">// 构造函数</span></span><br><span class="line"></span><br><span class="line">video.init(cc.renderer.device, &#123;                            <span class="comment">// 初始化参数</span></span><br><span class="line">    images: [],                                                         </span><br><span class="line">    width: videoWidth,                                                 </span><br><span class="line">    height: videoHeight,                                                </span><br><span class="line">    wrapS: gfx.WRAP_CLAMP,                                              </span><br><span class="line">    wrapT: gfx.WRAP_CLAMP,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">video.setURL(url);                                          <span class="comment">// 设置资源路径</span></span><br><span class="line">video.prepare();                                            <span class="comment">// 调用准备函数</span></span><br><span class="line">video.play();                                               <span class="comment">// 播放</span></span><br><span class="line">video.pause();                                              <span class="comment">// 暂停</span></span><br><span class="line">video.resume();                                             <span class="comment">// 恢复</span></span><br><span class="line">video.stop();                                               <span class="comment">// 停止</span></span><br><span class="line">video.clear();                                              <span class="comment">// 清理</span></span><br><span class="line">video.destroy();                                            <span class="comment">// 销毁</span></span><br><span class="line">video.seek(position);                                       <span class="comment">// 跳转</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> duration = video.duration();                            <span class="comment">// 获取视频时长</span></span><br><span class="line"><span class="keyword">let</span> currentTime = video.currentTime();                      <span class="comment">// 获取当前播放位置</span></span><br><span class="line"></span><br><span class="line">video.addEventListener(<span class="string">'loaded'</span>, () =&gt; &#123;&#125;);                 <span class="comment">// 监听 Meta 加载完成事件</span></span><br><span class="line">video.addEventListener(<span class="string">'ready'</span>, () =&gt; &#123;&#125;);                  <span class="comment">// 监听准备完毕事件</span></span><br><span class="line">video.addEventListener(<span class="string">'completed'</span>, () =&gt; &#123;&#125;);              <span class="comment">// 监听播放完成事件</span></span><br><span class="line">video.addEventListener(<span class="string">'error'</span>, () =&gt; &#123;&#125;);                  <span class="comment">// 监听播放失败事件</span></span><br></pre></td></tr></table></figure>
+<h3 id="视频展示，纹理渲染"><a href="#视频展示，纹理渲染" class="headerlink" title="视频展示，纹理渲染"></a>视频展示，纹理渲染</h3><p>实现视频展示功能，需要先了解纹理渲染流程，由于 Cocos Creator 在移动端使用的是 OpenGL API，在 Web 端使用的 WebGL API，OpenGL API 和 WebGL API 大致相同，因此可以到 OpenGL 网站学习下纹理渲染流程。初学者，推荐到 <a href="https://learnopengl-cn.github.io/" target="_blank" rel="noopener">LearnOpenGL CN</a> 学习。接下来使用 <a href="https://learnopengl-cn.github.io/" target="_blank" rel="noopener">LearnOpenGL CN</a> 纹理章节讲解以下纹理渲染流程。</p>
+<p>顶点着色器：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#version 330 core</span></span><br><span class="line"><span class="keyword">layout</span> (<span class="keyword">location</span> = <span class="number">0</span>) <span class="keyword">in</span> <span class="type">vec3</span> aPos;</span><br><span class="line"><span class="keyword">layout</span> (<span class="keyword">location</span> = <span class="number">1</span>) <span class="keyword">in</span> <span class="type">vec2</span> aTexCoord;</span><br><span class="line"></span><br><span class="line"><span class="keyword">out</span> <span class="type">vec2</span> TexCoord;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">gl_Position</span> = <span class="type">vec4</span>(aPos, <span class="number">1.0</span>);</span><br><span class="line">    TexCoord = <span class="type">vec2</span>(aTexCoord.x, aTexCoord.y);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 片段着色器：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#version 330 core</span></span><br><span class="line"><span class="keyword">out</span> <span class="type">vec4</span> FragColor;</span><br><span class="line"></span><br><span class="line"><span class="keyword">in</span> <span class="type">vec2</span> TexCoord;</span><br><span class="line"></span><br><span class="line"><span class="keyword">uniform</span> <span class="type">sampler2D</span> tex;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main()</span><br><span class="line">&#123;</span><br><span class="line">    FragColor = <span class="built_in">texture</span>(tex, TexCoord);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 纹理渲染程序：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;glad/glad.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;GLFW/glfw3.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stb_image.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;learnopengl/shader_s.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 窗口大小</span></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> SCR_WIDTH = <span class="number">800</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> SCR_HEIGHT = <span class="number">600</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 初始化窗口</span></span><br><span class="line">    <span class="comment">// --------</span></span><br><span class="line">    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, <span class="string">"LearnOpenGL"</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 编译和链接着色器程序</span></span><br><span class="line">    <span class="comment">// ----------------</span></span><br><span class="line">    <span class="function">Shader <span class="title">ourShader</span><span class="params">(<span class="string">"4.1.texture.vs"</span>, <span class="string">"4.1.texture.fs"</span>)</span></span>; </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置顶点属性参数</span></span><br><span class="line">    <span class="comment">// -------------</span></span><br><span class="line">    <span class="keyword">float</span> vertices[] = &#123;</span><br><span class="line">        <span class="comment">// 位置                // 纹理坐标</span></span><br><span class="line">         <span class="number">0.5f</span>,  <span class="number">0.5f</span>, <span class="number">0.0f</span>,   <span class="number">1.0f</span>, <span class="number">0.0f</span>, <span class="comment">// top right</span></span><br><span class="line">         <span class="number">0.5f</span>, <span class="number">-0.5f</span>, <span class="number">0.0f</span>,   <span class="number">1.0f</span>, <span class="number">1.0f</span>, <span class="comment">// bottom right</span></span><br><span class="line">        <span class="number">-0.5f</span>, <span class="number">-0.5f</span>, <span class="number">0.0f</span>,   <span class="number">0.0f</span>, <span class="number">1.0f</span>, <span class="comment">// bottom left</span></span><br><span class="line">        <span class="number">-0.5f</span>,  <span class="number">0.5f</span>, <span class="number">0.0f</span>,   <span class="number">0.0f</span>, <span class="number">0.0f</span>  <span class="comment">// top left </span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置索引数据，此程序画的图形基元是三角形，图片为矩形，所以由两个三角形组成</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> indices[] = &#123;  </span><br><span class="line">        <span class="number">0</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="comment">// first triangle</span></span><br><span class="line">        <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>  <span class="comment">// second triangle</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明和创建 VBO 顶点缓冲对象，VAO 顶点数组对象，索引缓冲对象</span></span><br><span class="line">    <span class="comment">// C 语言并非面向对象编程，这里使用无符号整形来代表对象</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> VBO, VAO, EBO;</span><br><span class="line">    glGenVertexArrays(<span class="number">1</span>, &amp;VAO);</span><br><span class="line">    glGenBuffers(<span class="number">1</span>, &amp;VBO);</span><br><span class="line">    glGenBuffers(<span class="number">1</span>, &amp;EBO);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绑定顶点对象数组，可记录接下来设置的缓冲对象数据，方便在渲染循环中使用</span></span><br><span class="line">    glBindVertexArray(VAO);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绑定顶点缓冲对象，用于传递顶点属性参数</span></span><br><span class="line">    glBindBuffer(GL_ARRAY_BUFFER, VBO);</span><br><span class="line">    glBufferData(GL_ARRAY_BUFFER, <span class="keyword">sizeof</span>(vertices), vertices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绑定索引缓冲对象，glDrawElements 会按照索引顺序画图形基元</span></span><br><span class="line">    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);</span><br><span class="line">    glBufferData(GL_ELEMENT_ARRAY_BUFFER, <span class="keyword">sizeof</span>(indices), indices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 链接顶点属性：位置， 参数：索引，大小，类型，标准化，步进，偏移</span></span><br><span class="line">    glVertexAttribPointer(<span class="number">0</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">5</span> * <span class="keyword">sizeof</span>(<span class="keyword">float</span>), (<span class="keyword">void</span>*)<span class="number">0</span>);</span><br><span class="line">    glEnableVertexAttribArray(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 链接顶点属性：纹理坐标，参数：索引，大小，类型，标准化，步进，偏移</span></span><br><span class="line">    glVertexAttribPointer(<span class="number">1</span>, <span class="number">2</span>, GL_FLOAT, GL_FALSE, <span class="number">5</span> * <span class="keyword">sizeof</span>(<span class="keyword">float</span>), (<span class="keyword">void</span>*)(<span class="number">3</span> * <span class="keyword">sizeof</span>(<span class="keyword">float</span>)));</span><br><span class="line">    glEnableVertexAttribArray(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 生成纹理对象</span></span><br><span class="line">    <span class="comment">// -------------------------</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> texture;</span><br><span class="line">    glGenTextures(<span class="number">1</span>, &amp;texture);</span><br><span class="line">    glBindTexture(GL_TEXTURE_2D, texture);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置环绕参数</span></span><br><span class="line">    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);</span><br><span class="line">    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 设置纹理过滤</span></span><br><span class="line">    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);</span><br><span class="line">    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 加载图片</span></span><br><span class="line">    <span class="keyword">int</span> width, height, nrChannels;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> *data = stbi_load(FileSystem::getPath(<span class="string">"resources/textures/container.jpg"</span>).c_str(), &amp;width, &amp;height, &amp;nrChannels, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (data)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 传递纹理数据，参数：目标，级别，内部格式，宽，高，边框，格式，数据类型，像素数组</span></span><br><span class="line">        glTexImage2D(GL_TEXTURE_2D, <span class="number">0</span>, GL_RGB, width, height, <span class="number">0</span>, GL_RGB, GL_UNSIGNED_BYTE, data);</span><br><span class="line">        glGenerateMipmap(GL_TEXTURE_2D);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"Failed to load texture"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    stbi_image_free(data);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 渲染循环</span></span><br><span class="line">    <span class="comment">// -------</span></span><br><span class="line">    <span class="keyword">while</span> (!glfwWindowShouldClose(window))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 清理</span></span><br><span class="line">        <span class="comment">// ---</span></span><br><span class="line">        glClearColor(<span class="number">0.2f</span>, <span class="number">0.3f</span>, <span class="number">0.3f</span>, <span class="number">1.0f</span>);</span><br><span class="line">        glClear(GL_COLOR_BUFFER_BIT);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 绑定纹理</span></span><br><span class="line">        glBindTexture(GL_TEXTURE_2D, texture);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 应用 shader 程序</span></span><br><span class="line">        ourShader.use();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 绑定顶点数组对象</span></span><br><span class="line">        glBindVertexArray(VAO);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 绘制三角形基元</span></span><br><span class="line">        glDrawElements(GL_TRIANGLES, <span class="number">6</span>, GL_UNSIGNED_INT, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// glfw 交换缓冲</span></span><br><span class="line">        glfwSwapBuffers(window);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 清理对象</span></span><br><span class="line">    <span class="comment">// ------------------------------------------------------------------------</span></span><br><span class="line">    glDeleteVertexArrays(<span class="number">1</span>, &amp;VAO);</span><br><span class="line">    glDeleteBuffers(<span class="number">1</span>, &amp;VBO);</span><br><span class="line">    glDeleteBuffers(<span class="number">1</span>, &amp;EBO);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 结束</span></span><br><span class="line">    <span class="comment">// ------------------------------------------------------------------</span></span><br><span class="line">    glfwTerminate();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 简单的纹理渲染流程：</p>
+<ol>
+<li>编译和链接着色器程序；</li>
+<li>设置顶点数据，包括位置和纹理坐标属性（值得注意的是：位置坐标系和纹理坐标系不同，下文介绍）；</li>
+<li>设置索引数据，索引是用来绘制图形基元时参照；</li>
+<li>创建顶点缓冲对象，索引缓冲对象，顶点数组对象，并绑定传值；</li>
+<li>链接顶点属性；</li>
+<li>创建和绑定纹理对象，加载图片，传递纹理像素值；</li>
+<li>让程序进入渲染循环，在循环中绑定顶点数组对象，不断绘制图形基元。</li>
+</ol>
+<p>第2点描述的位置坐标系和纹理系不同，具体不同如下图：</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="/images/FFmpeg-Cocos-Creator/xKR8ij.png" alt title>
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<ul>
+<li>位置坐标系原点（0，0）在中心位置，x，y 取值范围是 -1 到 1；</li>
+<li>纹理坐标系原点（0，0）在左上角位置，x，y取值范围是 0 到 1；</li>
+</ul>
+<p>在 Cocos Creator 2.0 版本后，自定义渲染组件，分为三步：</p>
+<ol>
+<li>自定义材质（材质负责着色器程序）；</li>
+<li>自定义 Assembler （Assembler 负责传递顶点属性）；</li>
+<li>设置材质动态参数，如设置纹理，变换平移旋转缩放矩阵等。</li>
+</ol>
+<p>第 1 步：着色器程序需要写在 effect 文件中，而 effect 被 material 使用，每个渲染组件，需要挂载 material 属性。由于视频展示，可以理解为图片帧动画渲染，因此可以直接使用 Cocos Creator 提供的 CCSprite 所用的 builtin-2d-sprite 材质。</p>
+<p>第 2 步：有了材质后，只需要关心位置坐标和纹理坐标传递，即要自定义 Assembler，可参考官方文档 <a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/custom-render.html#自定义-assembler" target="_blank" rel="noopener">自定义 Assembler</a>。为了效率，直接使用官方源码 <a href="https://github.com/cocos-creator/engine/blob/master/cocos2d/core/renderer/assembler-2d.js" target="_blank" rel="noopener">https://github.com/cocos-creator/engine/blob/master/cocos2d/core/renderer/assembler-2d.js</a> 改造，值得注意的是，原生端和 Web 端世界坐标计算方式（ updateWorldVerts ）不一样，否则会出现展示位置错乱问题。直接贴代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">CCVideoAssembler</span> <span class="keyword">extends</span> <span class="title">cc</span>.<span class="title">Assembler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span> () &#123;</span><br><span class="line">        <span class="keyword">super</span>();</span><br><span class="line">        <span class="keyword">this</span>.floatsPerVert = <span class="number">5</span>;</span><br><span class="line">        <span class="keyword">this</span>.verticesCount = <span class="number">4</span>;</span><br><span class="line">        <span class="keyword">this</span>.indicesCount = <span class="number">6</span>;</span><br><span class="line">        <span class="keyword">this</span>.uvOffset = <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">this</span>.colorOffset = <span class="number">4</span>;</span><br><span class="line">        <span class="keyword">this</span>.uv = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>]; <span class="comment">// left bottom, right bottom, left top, right top</span></span><br><span class="line">        <span class="keyword">this</span>._renderData = <span class="keyword">new</span> cc.RenderData();</span><br><span class="line">        <span class="keyword">this</span>._renderData.init(<span class="keyword">this</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">this</span>.initData();</span><br><span class="line">        <span class="keyword">this</span>.initLocal();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">get</span> verticesFloats () &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.verticesCount * <span class="keyword">this</span>.floatsPerVert;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    initData () &#123;</span><br><span class="line">        <span class="keyword">this</span>._renderData.createQuadData(<span class="number">0</span>, <span class="keyword">this</span>.verticesFloats, <span class="keyword">this</span>.indicesCount);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    initLocal () &#123;</span><br><span class="line">        <span class="keyword">this</span>._local = [];</span><br><span class="line">        <span class="keyword">this</span>._local.length = <span class="number">4</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    updateColor (comp, color) &#123;</span><br><span class="line">        <span class="keyword">let</span> uintVerts = <span class="keyword">this</span>._renderData.uintVDatas[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">if</span> (!uintVerts) <span class="keyword">return</span>;</span><br><span class="line">        color = color || comp.node.color._val;</span><br><span class="line">        <span class="keyword">let</span> floatsPerVert = <span class="keyword">this</span>.floatsPerVert;</span><br><span class="line">        <span class="keyword">let</span> colorOffset = <span class="keyword">this</span>.colorOffset;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> i = colorOffset, l = uintVerts.length; i &lt; l; i += floatsPerVert) &#123;</span><br><span class="line">            uintVerts[i] = color;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    getBuffer () &#123;</span><br><span class="line">        <span class="keyword">return</span> cc.renderer._handle._meshBuffer;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    updateWorldVerts (comp) &#123;</span><br><span class="line">        <span class="keyword">let</span> local = <span class="keyword">this</span>._local;</span><br><span class="line">        <span class="keyword">let</span> verts = <span class="keyword">this</span>._renderData.vDatas[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(CC_JSB)&#123;</span><br><span class="line">            <span class="keyword">let</span> vl = local[<span class="number">0</span>],</span><br><span class="line">            vr = local[<span class="number">2</span>],</span><br><span class="line">            vb = local[<span class="number">1</span>],</span><br><span class="line">            vt = local[<span class="number">3</span>];</span><br><span class="line">            <span class="comment">// left bottom</span></span><br><span class="line">            verts[<span class="number">0</span>] = vl;</span><br><span class="line">            verts[<span class="number">1</span>] = vb;</span><br><span class="line">            <span class="comment">// right bottom</span></span><br><span class="line">            verts[<span class="number">5</span>] = vr;</span><br><span class="line">            verts[<span class="number">6</span>] = vb;</span><br><span class="line">            <span class="comment">// left top</span></span><br><span class="line">            verts[<span class="number">10</span>] = vl;</span><br><span class="line">            verts[<span class="number">11</span>] = vt;</span><br><span class="line">            <span class="comment">// right top</span></span><br><span class="line">            verts[<span class="number">15</span>] = vr;</span><br><span class="line">            verts[<span class="number">16</span>] = vt;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">let</span> matrix = comp.node._worldMatrix;</span><br><span class="line">            <span class="keyword">let</span> matrixm = matrix.m,</span><br><span class="line">                a = matrixm[<span class="number">0</span>], b = matrixm[<span class="number">1</span>], c = matrixm[<span class="number">4</span>], d = matrixm[<span class="number">5</span>],</span><br><span class="line">                tx = matrixm[<span class="number">12</span>], ty = matrixm[<span class="number">13</span>];</span><br><span class="line"></span><br><span class="line">            <span class="keyword">let</span> vl = local[<span class="number">0</span>], vr = local[<span class="number">2</span>],</span><br><span class="line">                vb = local[<span class="number">1</span>], vt = local[<span class="number">3</span>];</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">let</span> justTranslate = a === <span class="number">1</span> &amp;&amp; b === <span class="number">0</span> &amp;&amp; c === <span class="number">0</span> &amp;&amp; d === <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (justTranslate) &#123;</span><br><span class="line">                <span class="comment">// left bottom</span></span><br><span class="line">                verts[<span class="number">0</span>] = vl + tx;</span><br><span class="line">                verts[<span class="number">1</span>] = vb + ty;</span><br><span class="line">                <span class="comment">// right bottom</span></span><br><span class="line">                verts[<span class="number">5</span>] = vr + tx;</span><br><span class="line">                verts[<span class="number">6</span>] = vb + ty;</span><br><span class="line">                <span class="comment">// left top</span></span><br><span class="line">                verts[<span class="number">10</span>] = vl + tx;</span><br><span class="line">                verts[<span class="number">11</span>] = vt + ty;</span><br><span class="line">                <span class="comment">// right top</span></span><br><span class="line">                verts[<span class="number">15</span>] = vr + tx;</span><br><span class="line">                verts[<span class="number">16</span>] = vt + ty;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">let</span> al = a * vl, ar = a * vr,</span><br><span class="line">                bl = b * vl, br = b * vr,</span><br><span class="line">                cb = c * vb, ct = c * vt,</span><br><span class="line">                db = d * vb, dt = d * vt;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// left bottom</span></span><br><span class="line">                verts[<span class="number">0</span>] = al + cb + tx;</span><br><span class="line">                verts[<span class="number">1</span>] = bl + db + ty;</span><br><span class="line">                <span class="comment">// right bottom</span></span><br><span class="line">                verts[<span class="number">5</span>] = ar + cb + tx;</span><br><span class="line">                verts[<span class="number">6</span>] = br + db + ty;</span><br><span class="line">                <span class="comment">// left top</span></span><br><span class="line">                verts[<span class="number">10</span>] = al + ct + tx;</span><br><span class="line">                verts[<span class="number">11</span>] = bl + dt + ty;</span><br><span class="line">                <span class="comment">// right top</span></span><br><span class="line">                verts[<span class="number">15</span>] = ar + ct + tx;</span><br><span class="line">                verts[<span class="number">16</span>] = br + dt + ty;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    fillBuffers (comp, renderer) &#123;</span><br><span class="line">        <span class="keyword">if</span> (renderer.worldMatDirty) &#123;</span><br><span class="line">            <span class="keyword">this</span>.updateWorldVerts(comp);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">let</span> renderData = <span class="keyword">this</span>._renderData;</span><br><span class="line">        <span class="keyword">let</span> vData = renderData.vDatas[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">let</span> iData = renderData.iDatas[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">let</span> buffer = <span class="keyword">this</span>.getBuffer(renderer);</span><br><span class="line">        <span class="keyword">let</span> offsetInfo = buffer.request(<span class="keyword">this</span>.verticesCount, <span class="keyword">this</span>.indicesCount);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// fill vertices</span></span><br><span class="line">        <span class="keyword">let</span> vertexOffset = offsetInfo.byteOffset &gt;&gt; <span class="number">2</span>,</span><br><span class="line">            vbuf = buffer._vData;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (vData.length + vertexOffset &gt; vbuf.length) &#123;</span><br><span class="line">            vbuf.set(vData.subarray(<span class="number">0</span>, vbuf.length - vertexOffset), vertexOffset);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            vbuf.set(vData, vertexOffset);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// fill indices</span></span><br><span class="line">        <span class="keyword">let</span> ibuf = buffer._iData,</span><br><span class="line">            indiceOffset = offsetInfo.indiceOffset,</span><br><span class="line">            vertexId = offsetInfo.vertexOffset;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, l = iData.length; i &lt; l; i++) &#123;</span><br><span class="line">            ibuf[indiceOffset++] = vertexId + iData[i];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    updateRenderData (comp) &#123;</span><br><span class="line">        <span class="keyword">if</span> (comp._vertsDirty) &#123;</span><br><span class="line">            <span class="keyword">this</span>.updateUVs(comp);</span><br><span class="line">            <span class="keyword">this</span>.updateVerts(comp);</span><br><span class="line">            comp._vertsDirty = <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    updateUVs (comp) &#123;</span><br><span class="line">        <span class="keyword">let</span> uv = <span class="keyword">this</span>.uv;</span><br><span class="line">        <span class="keyword">let</span> uvOffset = <span class="keyword">this</span>.uvOffset;</span><br><span class="line">        <span class="keyword">let</span> floatsPerVert = <span class="keyword">this</span>.floatsPerVert;</span><br><span class="line">        <span class="keyword">let</span> verts = <span class="keyword">this</span>._renderData.vDatas[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">let</span> srcOffset = i * <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">let</span> dstOffset = floatsPerVert * i + uvOffset;</span><br><span class="line">            verts[dstOffset] = uv[srcOffset];</span><br><span class="line">            verts[dstOffset + <span class="number">1</span>] = uv[srcOffset + <span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    updateVerts (comp) &#123;</span><br><span class="line">        <span class="keyword">let</span> node = comp.node,</span><br><span class="line">            cw = node.width, ch = node.height,</span><br><span class="line">            appx = node.anchorX * cw, appy = node.anchorY * ch,</span><br><span class="line">            l, b, r, t;</span><br><span class="line">        l = -appx;</span><br><span class="line">        b = -appy;</span><br><span class="line">        r = cw - appx;</span><br><span class="line">        t = ch - appy;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">let</span> local = <span class="keyword">this</span>._local;</span><br><span class="line">        local[<span class="number">0</span>] = l;</span><br><span class="line">        local[<span class="number">1</span>] = b;</span><br><span class="line">        local[<span class="number">2</span>] = r;</span><br><span class="line">        local[<span class="number">3</span>] = t;</span><br><span class="line">        <span class="keyword">this</span>.updateWorldVerts(comp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 第 3 步，设置材质动态参数，在视频播放器中，需要动态修改的就是纹理数据了，在移动端，ffplay 改造后的 AVPlayer 在播放过程，通过 ITextureRenderer.render(uint8_t) 接口调用到 void Video::setImage(const uint8_t *data) 方法，实际在不断更新纹理数据，代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Video::setImage</span><span class="params">(<span class="keyword">const</span> <span class="keyword">uint8_t</span> *data)</span> </span>&#123;</span><br><span class="line">    GL_CHECK(glActiveTexture(GL_TEXTURE0));</span><br><span class="line">    GL_CHECK(glBindTexture(GL_TEXTURE_2D, _glID));</span><br><span class="line">    GL_CHECK(</span><br><span class="line">            glTexImage2D(GL_TEXTURE_2D, <span class="number">0</span>, _glInternalFormat, _width, _height, <span class="number">0</span>, _glFormat,</span><br><span class="line">                         _glType, data));</span><br><span class="line">    _device-&gt;restoreTexture(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line">在 Web 端，则是在 CCVideo 渲染组件的每一帧去传递 video 元素，代码如下：</span><br><span class="line">let gl = cc.renderer.device._gl;</span><br><span class="line"><span class="keyword">this</span>.update = dt =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">this</span>._currentState == VideoState.PLAYING)&#123;</span><br><span class="line">        gl.bindTexture(gl.TEXTURE_2D, <span class="keyword">this</span>.texture._glID);</span><br><span class="line">        gl.texImage2D(gl.TEXTURE_2D, <span class="number">0</span>, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, <span class="keyword">this</span>.video);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>至此，视频展示小节完毕。</p>
+<h3 id="音频播放"><a href="#音频播放" class="headerlink" title="音频播放"></a>音频播放</h3><p>在改造音频播放过程之前，查阅了 <strong>ijkplayer</strong> 的音频播放方案，作为现状分析。</p>
+<p><strong>ijkplayer</strong> 在 Android 端有两套方案：AudioTrack 和 OpenSL ES。</p>
+<ol>
+<li>AudioTrack 属于那种同步写数据的方式，属于 “推” 方案，google 最开始推行的方式，估计比较稳定，由于 AudioTrack 是 Java 接口，C++ 调用需要反射，理论上，对效率有点影响。</li>
+<li>OpenSL ES 可以做到 “拉” 方案，但 google 在官方文档说过对 OpenSL ES 接口没做太多的兼容，也许不太可靠。</li>
+</ol>
+<p><strong>ijkplayer</strong> 在 iOS 端也是两套方案：AudioUint 和 AudioQueue，由于本人对 iOS 开发不熟，不知道二者区别，因此不做展开。</p>
+<p>在 Cocos Creator 音频播放改造中，在 Android 端选择了 google 最新推行的响应延迟极低的 <a href="https://github.com/google/oboe" target="_blank" rel="noopener">Google Oboe</a> 方案，Oboe 是 AAudio 和 OpenSL ES 封装集合，功能更强大，接口更人性化。在 iOS 端选择了 AudioQueue ，要问原因的话，就是 iOS AudioQueue 的接口和 Android Oboe 提供的接口更像…</p>
+<p>音频播放模型，属于生产者消费者模型，音频设备在开启状态下，会不断拉取音频解码器生成的音频样本。</p>
+<p>音频播放的接口并不复杂，主要用于替换 ffplay 程序中的 SDL 音频相关接口，具体接口代码如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> I_AUDIO_DEVICE_H</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> I_AUDIO_DEVICE_H</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"AudioSpec.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IAudioDevice</span> &#123;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">    <span class="keyword">virtual</span> ~IAudioDevice() &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">bool</span> <span class="title">open</span><span class="params">(AudioSpec *wantedSpec)</span> </span>= <span class="number">0</span>;  <span class="comment">// 开启音频设备，AudioSpec 结构体包含拉取回调</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>= <span class="number">0</span>;                      <span class="comment">// 关闭音频输出</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">pause</span><span class="params">()</span> </span>= <span class="number">0</span>;                      <span class="comment">// 暂停音频输出</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">resume</span><span class="params">()</span> </span>= <span class="number">0</span>;                     <span class="comment">// 恢复音频输出</span></span><br><span class="line"></span><br><span class="line">    AudioSpec spec;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">//I_AUDIO_DEVICE_H</span></span></span><br></pre></td></tr></table></figure>
+<h3 id="优化与扩展"><a href="#优化与扩展" class="headerlink" title="优化与扩展"></a>优化与扩展</h3><h4 id="边下边播"><a href="#边下边播" class="headerlink" title="边下边播"></a>边下边播</h4><p>边下边播可以说是音视频播放器必备的功能，不但可以节省用户流量，而且可以提高二次打开速度。最常见的边下边播实现方式是在客户端建立代理服务器，只需要对播放器传入的资源路径加以修改，从而达到播放功能和下载功能解耦。不过理论上，建立代理服务器会增加移动设备的内存和电量消耗。</p>
+<p>接下来介绍另外一种更简单易用的方案：利用 FFmpeg 提供的协议组合来实现边下边播</p>
+<p>在查阅 <a href="https://ffmpeg.org/ffmpeg-protocols.html" target="_blank" rel="noopener">FFmpeg 官方协议</a> 文档时，发现某些协议支持组合使用，如下：</p>
+<p><code>cache:http://host/resource</code></p>
+<p>这里在 http 协议前面添加了 cache 协议，即可以使用官方提供的播放过程中缓存观看过的一段，以便跳转使用，由于 cache 协议生成的文件路径问题，导致移动端不适用，此功能也达不到边下边播功能。</p>
+<p>但从中可以得到结论：在其他协议前面加入自己协议，就能像钩子一样 hook 住其他协议接口，于是整理一个边下边播的 avcache 协议：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> URLProtocol av_cache_protocol = &#123;</span><br><span class="line">        .name                = <span class="string">"avcache"</span>,</span><br><span class="line">        .url_open2           = av_cache_open,</span><br><span class="line">        .url_read            = av_cache_read,</span><br><span class="line">        .url_seek            = av_cache_seek,</span><br><span class="line">        .url_close           = av_cache_close,</span><br><span class="line">        .priv_data_size      = <span class="keyword">sizeof</span>(AVContext),</span><br><span class="line">        .priv_data_class     = &amp;av_cache_context_class,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>原理就是：在 av_cache_read 方法中，调用其他协议的 read 方法，得到数据后，写入文件并存储下载信息，并把数据返回给播放器。</p>
+<h4 id="libyuv-替换-swscale"><a href="#libyuv-替换-swscale" class="headerlink" title="libyuv 替换 swscale"></a>libyuv 替换 swscale</h4><p>YUV（<a href="https://zh.wikipedia.org/wiki/YUV" target="_blank" rel="noopener">wikipedia</a>），是一种颜色编码方法。为了节省带宽，大多数 YUV 格式平均使用的每像素位数都少于24位，因此一般视频都是用 YUV 颜色编码。YUV 由分为两种格式，分别是紧缩格式和平面格式。其中平面格式将 Y、U、V 的三个分量分别存放在不同的矩阵中。</p>
+<p>根据上文，如果让片段着色器直接支持 YUV 纹理渲染，不同格式下，片段着色器所需要的 sampler2D 纹理采样器数量也不同，因此管理起来相当不便。最简单的方式，就是把 YUV 颜色编码转成 RGB24 颜色编码，因此需要用到 FFmpeg 提供的 swscale。</p>
+<p>但在使用 swscale （已开启 FFmpeg 编译选项 neon 优化）进行颜色编码转换后，就可以发现 swscale 在移动端效率低下，使用小米 Mix 3 设备，1280x720 分辨率的视频，像素格式从 AV_PIX_FMT_YUV420P 转成 AV_PIX_FMT_RGB24，缩放按照二次线性采样，平均耗时高达 16 毫秒，而且导致 CPU 占用率相当高。数据截图待补：</p>
+<p>经过 google 一番搜索，找到了 google 的 libyuv 替代方案</p>
+<p>开源项目：<a href="https://chromium.googlesource.com/libyuv/libyuv/" target="_blank" rel="noopener">https://chromium.googlesource.com/libyuv/libyuv/</a></p>
+<p>官方优化说明：</p>
+<ul>
+<li>Optimized for SSSE3/AVX2 on x86/x64；</li>
+<li>Optimized for Neon on Arm；</li>
+<li>Optimized for MSA on Mips。</li>
+</ul>
+<p>使用 libyuv 进行像素格式转换后，使用小米 Mix 3 设备，1280x720 分辨率的视频，像素格式从 AV_PIX_FMT_YUV420P 转成 AV_PIX_FMT_RGB24，缩放按照二次线性采样，平均耗时 8 毫秒，相对 swscale 降低了一半。数据截图待补：</p>
+<h4 id="Android-asset-协议"><a href="#Android-asset-协议" class="headerlink" title="Android asset 协议"></a>Android asset 协议</h4><p>由于 Cocos Creator 本地音视频资源在 Android 端会打包到 asset 目录下，在 asset 目录下的资源需要使用 AssetManager 打开，因此需要支持 Android asset 协议，具体协议声明如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> URLProtocol asset_protocol = &#123;</span><br><span class="line">        .name                = <span class="string">"asset"</span>,</span><br><span class="line">        .url_open2           = asset_open,</span><br><span class="line">        .url_read            = asset_read,</span><br><span class="line">        .url_seek            = asset_seek,</span><br><span class="line">        .url_close           = asset_close,</span><br><span class="line">        .priv_data_size      = <span class="keyword">sizeof</span>(AssetContext),</span><br><span class="line">        .priv_data_class     = &amp;asset_context_class,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="成果展示"><a href="#成果展示" class="headerlink" title="成果展示"></a>成果展示</h2>
+
+<div style="position: relative; width: 100%; height: 0; padding-bottom: 75%;">
+    <iframe src="//player.bilibili.com/player.html?aid=288261417&bvid=BV1kf4y1e7Ew&cid=272365385&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="position: absolute; width: 100%; height: 100%; left: 0; top: 0;">
+    </iframe>
+</div>
+
+
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ol>
+<li>FFmpeg: <a href="https://ffmpeg.org/" target="_blank" rel="noopener">https://ffmpeg.org/</a></li>
+<li>Cocos Creator 自定义 Assembler: <a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/custom-render.html#" target="_blank" rel="noopener">https://docs.cocos.com/creator/manual/zh/advanced-topics/custom-render.html#</a></li>
+<li>Cocos Creator JSB 绑定：<a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/JSB2.0-learning.html" target="_blank" rel="noopener">https://docs.cocos.com/creator/manual/zh/advanced-topics/JSB2.0-learning.html</a></li>
+<li>Android Oboe: <a href="https://github.com/google/oboe/blob/master/docs/FullGuide.md" target="_blank" rel="noopener">https://github.com/google/oboe/blob/master/docs/FullGuide.md</a></li>
+<li>Google libyuv: <a href="https://chromium.googlesource.com/libyuv/libyuv/+/HEAD/docs/getting_started.md" target="_blank" rel="noopener">https://chromium.googlesource.com/libyuv/libyuv/+/HEAD/docs/getting_started.md</a></li>
+<li>LearnOpenGL CN: <a href="https://learnopengl-cn.github.io/" target="_blank" rel="noopener">https://learnopengl-cn.github.io/</a></li>
+<li>WebGL: <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/WebGL_API/Tutorial/Animating_textures_in_WebGL" target="_blank" rel="noopener">https://developer.mozilla.org/zh-CN/docs/Web/API/WebGL_API/Tutorial/Animating_textures_in_WebGL</a></li>
+<li>ijkplayer: <a href="https://github.com/bilibili/ijkplayer" target="_blank" rel="noopener">https://github.com/bilibili/ijkplayer</a></li>
+<li>等等…</li>
+</ol>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2021-08-09T07:09:55.353Z" itemprop="dateUpdated">2021-08-09 07:09:55</time>
+</span><br>
+
+
+        
+        <hr>本博客所有内容遵循 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external">Creative Commons Attribution 4.0 International License</a> 协议发布。所有文章仅代表个人观点，与雇主无关。<br>欢迎微信关注我们的公众号【腾讯在线教育技术】。
+        
+    </div>
+    
+    <footer>
+        <a href="http://oedx.github.io">
+            <img src="/img/oedx.png" alt="oedx">
+            oedx
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cocos/">Cocos</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/&title=《基于 FFmpeg 的 Cocos Creator 视频播放器》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/&title=《基于 FFmpeg 的 Cocos Creator 视频播放器》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《基于 FFmpeg 的 Cocos Creator 视频播放器》 — OEDx&url=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2021/02/22/TinyCocosFix/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">TinyCocosFix -- Cocos热更新的非官方解决方案</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2020/12/08/rhubarb-lip-sync-ccc/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">让你的角色学会说话——rhubarb-lip-sync-ccc</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="comments" id="comments">
+    <div id="gitalk-container"></div>
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        var id = location.pathname
+        if (location.pathname.length > 50) {
+          id = location.pathname.replace(/\/\d+\/\d+\/\d+\//, '').replace('/', '').substring(0, 50)
+        }
+        const gitalk = new Gitalk({
+          clientID: 'ab64984be8acc2ff38d0',
+          clientSecret: '2c4556a59504adc6921c333d2fed51e4d4b61d63',
+          repo: 'OEDx.github.io',
+          owner: 'oedx',
+          admin: ['wzpan'],
+          id: id,      // Ensure uniqueness and length less than 50
+          title: document.title.split('|')[0],
+          distractionFreeMode: false  // Facebook-like distraction free mode
+        })
+
+        gitalk.render('gitalk-container')
+    </script>
+</section>
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style="display:none">
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style="display:none">
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>oedx &copy; 2019 - 2021</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/&title=《基于 FFmpeg 的 Cocos Creator 视频播放器》 — OEDx&pic=http://oedx.github.io/img/oedx.png" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/&title=《基于 FFmpeg 的 Cocos Creator 视频播放器》 — OEDx&source=腾讯科技在线教育部技术博客" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《基于 FFmpeg 的 Cocos Creator 视频播放器》 — OEDx&url=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/&via=http://oedx.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://oedx.github.io/2020/12/29/FFmpeg-Cocos-Creator/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMYAAADGCAAAAACs8KCBAAACIUlEQVR42u3aS47DIBAFwNz/0p7NLEaKTF7TZCRDsYoiB1MsOnze6xW360+7++b9+/Ezd5/fn1/WMDAwHsu4hi15Qf79XZ/Je8dTg4GBcQJjPIjxM8mLO2U9mjgMDAyMYekc99Nfy2FgYGBUGTlvDEsWoBgYGBhzhS8f6HjQyVLyK3txDAyMBzLyQfz/56/cb2BgYDyKcRVbcrg/7n/teH77xMDA2JqRF7i58ER1mdjqAQMDY2tGZ+h5wCu/WqiGzzAwME5jJEf5nTJaDZBVJwIDA2M/RjVg2imLyYZ2MsCBgYFxAKMTqujwlm1xMTAwtmZUN4pzoYd8uZlPBAYGxjmMuShYdVk5N2WFEWJgYGzNyLev1VLbmY4OGwMD4wRGNU6RR8SSI7xqQV+WCsHAwHg4Y668Rsu4KQAGBsZpjLxcJoPIF3lzl5q3k4uBgbE1o3pwv2qLW31L9CsMDIxNGdWFYD70VZGL6AAOAwNja8a3wxbVgFdevjEwMDA6l5TVJ6sl+7Y3DAyMwxjVspgX3Dx8Vo5oYGBgHMCoHnV1LiM7/X8ouBgYGNsxrmKrbm6rwYu5uAYGBsbejH6xWwXOAxadvwQMDIznMjpXkquO0vq/wsDAOIExd/SfD2jVsu+2WGNgYGAUo2PVi4c8NPZhR46BgYERF8Hq4DoXDBgYGOcw8oOzTmgsKbtzMQ4MDIy9GZ0gxdzCbnIQxb8BDAyMLRg/fUqdOxKp8eMAAAAASUVORK5CYII=" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="/js/main.min.js?v=1.7.2"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+
+<script src="/js/search.min.js?v=1.7.2" async></script>
+
+
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = '回来喝杯茶嘛！';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '(つェ⊂)欢迎回来！';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>
